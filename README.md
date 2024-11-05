@@ -16,3 +16,11 @@ That simplifies meal planning, generates AI-powered shopping lists based on sele
 -	Price Comparison: Webscrapes local supermarkets to gather price data, determining which has the best overall price.
 -	User Authentication: Users will need to log in to save data such as weekly meals, shopping lists, preferences, and history.
 -	Streamlined UI/UX: Focus on the user interface to provide a smooth experience for the user.
+
+
+## Decided on tech stack for the project: 
+- Mobile App: React Native 
+- Backend: Node.js 
+- Database: MongoDB 
+- AI features: Python 
+- Authentication: Firebase 
