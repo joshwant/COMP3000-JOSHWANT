@@ -20,7 +20,7 @@ That simplifies meal planning, generates AI-powered shopping lists based on sele
 
 ## Decided on tech stack for the project: 
 - Mobile App: React Native 
-- Backend: Node.js 
+- Backend: Node.js with Express (use Docker) 
 - Database: MongoDB 
-- AI features: Python 
+- AI features: Python (use Docker) 
 - Authentication: Firebase 
