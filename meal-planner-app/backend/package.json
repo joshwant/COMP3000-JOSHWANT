@@ -1,0 +1,17 @@
+{
+  "name": "meal-planner-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^6.0.0",
+    "dotenv": "^16.0.3"
+  },
+  "devDependencies": {},
+  "author": "",
+  "license": "ISC"
+}

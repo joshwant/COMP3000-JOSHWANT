@@ -1,0 +1,10 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "82:9000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - NODE_ENV=development
+    command: ["node", "/app/server.js"]
