@@ -1,1 +1,18 @@
 .env
+.env.*
+node_modules/
+
+logs
+*.log
+npm-debug.log*
+
+.vscode/
+.idea/
+
+# React Native
+*.iml
+android/
+ios/
+*.apk
+*.aab
+expo-shared/
