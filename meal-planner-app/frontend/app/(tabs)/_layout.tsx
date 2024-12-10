@@ -8,6 +8,10 @@ import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
+import AntDesign from '@expo/vector-icons/AntDesign';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
@@ -18,6 +22,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
+        // tabBarShowLabel: false,
         tabBarStyle: Platform.select({
           ios: {
             // Use a transparent background on iOS to show the blur effect
@@ -34,12 +39,27 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="calendar"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Calendar',
+          tabBarIcon: ({ color }) => <AntDesign size={28} name="calendar" color={color} />,
+        }}
+      />
+    <Tabs.Screen
+        name="list"
+        options={{
+          title: 'List',
+          tabBarIcon: ({ color }) => <FontAwesome6 size={28} name="list-ul" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="priceComparison"
+        options={{
+          title: 'Price Comparison',
+          tabBarIcon: ({ color }) => <FontAwesome5 size={28} name="pound-sign" color={color} />,
         }}
       />
     </Tabs>
+    
   );
 }
