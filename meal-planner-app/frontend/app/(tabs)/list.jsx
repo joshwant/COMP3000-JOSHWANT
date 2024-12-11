@@ -4,7 +4,7 @@ import React from 'react'
 const list = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>List</Text>
+      <Text style={styles.text}>Shopping List</Text>
     </View>
   )
 }
