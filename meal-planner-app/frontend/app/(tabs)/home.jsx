@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native'
 import React from 'react'
 import { Link } from 'expo-router'
 
-const app = () => {
+const home = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Meal Planner</Text>
@@ -13,10 +13,17 @@ const app = () => {
         </Pressable>
       </Link>
 
+      {/* go to index */}
+      <Link href="/" style={{ marginHorizontal: 'auto' }} asChild>
+        <Pressable style={styles.button}>
+          <Text style={styles.buttonText}>Logout</Text>
+        </Pressable>
+      </Link>
+
     </View>
   )}
 
-export default app
+export default home
 
 const styles = StyleSheet.create({
   container: {
@@ -48,6 +55,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(0,0,0,0.75)',
     padding: 6,
+    marginBottom: 20,
   },
   buttonText: {
     color: 'white',
