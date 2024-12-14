@@ -15,8 +15,10 @@ const Login = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       navigation.navigate('home');
+      console.log("Logged in successfully")
     } catch (error) {
       Alert.alert('Error', error.message);
+      console.log("Error", error.message);
     }
   };
 

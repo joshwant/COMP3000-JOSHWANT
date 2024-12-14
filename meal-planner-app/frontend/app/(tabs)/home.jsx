@@ -1,9 +1,22 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { logout } from '../auth/logout.jsx'
 
 const Home = () => {
-  const navigation = useNavigation();  // Correctly initialize navigation
+  const navigation = useNavigation();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      Alert.alert("Logged Out", "You have been logged out successfully.");
+      console.log("Logged out successfully");
+      navigation.navigate('login');
+    } catch (error) {
+      Alert.alert("Error", "Failed to log out. Please try again.");
+      console.log("Error", error.message);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -17,6 +30,11 @@ const Home = () => {
       <Pressable style={styles.button} onPress={() => navigation.navigate('priceComparison')}>
         <Text style={styles.buttonText}>Price Comparison</Text>
       </Pressable>
+
+      <Pressable style={styles.button} onPress={handleLogout}>
+        <Text style={styles.buttonText}>Logout</Text>
+      </Pressable>
+
     </View>
   );
 };
@@ -28,10 +46,10 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     backgroundColor: 'white',
-    padding: 20, // Add padding to make it more comfortable
+    padding: 20,
   },
   text: {
-    color: 'black', // Change the text color to black to make it more readable
+    color: 'black',
     fontSize: 42,
     fontWeight: 'bold',
     textAlign: 'center',
