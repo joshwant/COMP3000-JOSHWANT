@@ -1,20 +1,49 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import React from 'react';
+import { View, Text, StyleSheet, Pressable, TextInput, Alert } from 'react-native';
+import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import app from '@/config/firebase';
+
+const auth = getAuth(app);
 
 const Login = () => {
   const navigation = useNavigation();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      navigation.navigate('home');
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Login</Text>
 
-      <Pressable style={styles.button} onPress={() => navigation.navigate('welcome')}>
-        <Text style={styles.buttonText}>Back to Welcome</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your email"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+
+      <Pressable style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>Login</Text>
       </Pressable>
 
       <Pressable style={styles.button} onPress={() => navigation.navigate('signup')}>
-        <Text style={styles.buttonText}>Sign Up</Text>
+        <Text style={styles.buttonText}>Don't have an account? Sign Up</Text>
       </Pressable>
     </View>
   );
@@ -23,42 +52,41 @@ const Login = () => {
 export default Login;
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      flexDirection: 'column',
-      backgroundColor: 'white',
-    },
-    text: {
-      color: 'white',
-      fontSize: 42,
-      fontWeight: 'bold',
-      textAlign: 'center',
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      marginBottom: 120,
-      marginTop: 40,
-    },
-    link: {
-      color: 'white',
-      fontSize: 42,
-      fontWeight: 'bold',
-      textAlign: 'center',
-      textDecorationLine: 'underline',
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      padding: 4,
-    },
-    button: {
-      height: 60,
-      borderRadius: 20,
-      justifyContent: 'center',
-      backgroundColor: 'rgba(0,0,0,0.75)',
-      padding: 6,
-      marginBottom: 20,
-    },
-    buttonText: {
-      color: 'white',
-      fontSize: 16,
-      fontWeight: 'bold',
-      textAlign: 'center',
-      padding: 4,
-    }
-  })
+  container: {
+    flex: 1,
+    flexDirection: 'column',
+    backgroundColor: 'white',
+    padding: 20,
+  },
+  text: {
+    color: 'black',
+    fontSize: 42,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 40,
+  },
+  input: {
+    height: 50,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+    fontSize: 16,
+  },
+  button: {
+    height: 60,
+    borderRadius: 20,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    padding: 6,
+    marginBottom: 20,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    padding: 4,
+  },
+});
