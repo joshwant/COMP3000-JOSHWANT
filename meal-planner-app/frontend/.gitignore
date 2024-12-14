@@ -3,8 +3,9 @@
 # dependencies
 node_modules/
 
-firebase.ts
-config/
+meal-planner-app/frontend/config/firebase.ts
+meal-planner-app/frontend/config/*.ts
+
 
 # Expo
 .expo/
