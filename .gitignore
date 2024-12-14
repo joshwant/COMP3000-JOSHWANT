@@ -16,3 +16,5 @@ ios/
 *.apk
 *.aab
 expo-shared/
+
+firebase.ts
