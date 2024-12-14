@@ -10,7 +10,11 @@ const Login = () => {
       <Text style={styles.text}>Login</Text>
 
       <Pressable style={styles.button} onPress={() => navigation.navigate('welcome')}>
-        <Text style={styles.buttonText}>Welcome</Text>
+        <Text style={styles.buttonText}>Back to Welcome</Text>
+      </Pressable>
+
+      <Pressable style={styles.button} onPress={() => navigation.navigate('signup')}>
+        <Text style={styles.buttonText}>Sign Up</Text>
       </Pressable>
     </View>
   );
