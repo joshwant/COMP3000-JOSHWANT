@@ -9,7 +9,7 @@ const Welcome = () => {
     <View style={styles.container}>
       <Text style={styles.text}>Welcome</Text>
 
-      <Pressable style={styles.button} onPress={() => navigation.navigate('Login')}>
+      <Pressable style={styles.button} onPress={() => navigation.navigate('login')}>
         <Text style={styles.buttonText}>Login</Text>
       </Pressable>
     </View>
@@ -17,9 +17,6 @@ const Welcome = () => {
 };
 
 export default Welcome;
-
-// Styles remain unchanged
-
 
 const styles = StyleSheet.create({
     container: {
