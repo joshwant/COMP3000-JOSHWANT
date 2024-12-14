@@ -10,16 +10,50 @@ const Login = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
+  const [loading, setLoading] = useState(false);
+
+  const validateFields = () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in both email and password fields.');
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Error', 'Please enter a valid email address.');
+      return false;
+    }
+    return true;
+  };
 
   const handleLogin = async () => {
+    if (!validateFields()) return;
+
+    setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
       navigation.navigate('home');
-      console.log("Logged in successfully")
+      console.log('Logged in successfully');
     } catch (error) {
-      Alert.alert('Error', error.message);
-      console.log("Error", error.message);
+      handleAuthError(error);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleAuthError = (error) => {
+    let message = 'An unexpected error occurred. Please try again.';
+    if (error.code === 'auth/invalid-email') {
+      message = 'Invalid email format. Please try again.';
+    } else if (error.code === 'auth/user-not-found') {
+      message = 'No account found with this email. Please sign up.';
+    } else if (error.code === 'auth/wrong-password') {
+      message = 'Incorrect password. Please try again.';
+    } else if (error.code === 'auth/too-many-requests') {
+      message = 'Too many login attempts. Please try again later.';
+    }
+    Alert.alert('Login Error', message);
+    console.error('Login Error:', error.message);
   };
 
   return (
@@ -31,6 +65,8 @@ const Login = () => {
         placeholder="Enter your email"
         value={email}
         onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
@@ -40,8 +76,12 @@ const Login = () => {
         secureTextEntry
       />
 
-      <Pressable style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
+      <Pressable
+        style={[styles.button, loading && styles.disabledButton]}
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>{loading ? 'Logging in...' : 'Login'}</Text>
       </Pressable>
 
       <Pressable style={styles.button} onPress={() => navigation.navigate('signup')}>

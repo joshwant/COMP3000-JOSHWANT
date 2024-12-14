@@ -14,9 +14,9 @@ const Signup = () => {
   const handleSignUp = async () => {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      navigation.navigate('login'); // Navigate to login after successful sign-up
+      navigation.navigate('login');
     } catch (error) {
-      Alert.alert('Error', error.message); // Display any errors to the user
+      Alert.alert('Error', error.message);
     }
   };
 
