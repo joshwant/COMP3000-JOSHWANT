@@ -1,17 +1,21 @@
-// Import the functions you need from the SDKs you need
+import * as dotenv from 'dotenv';
 import { initializeApp, getApps } from 'firebase/app';
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
+dotenv.config({ path: '../../.env' });
+
 const firebaseConfig = {
-  apiKey: "AIzaSyD0U4ODVbuLq2UVf21RWeu5QAnMjZkDHdY",
-  authDomain: "meal-planner-auth-394cb.firebaseapp.com",
-  projectId: "meal-planner-auth-394cb",
-  storageBucket: "meal-planner-auth-394cb.firebasestorage.app",
-  messagingSenderId: "954280010264",
-  appId: "1:954280010264:web:ff44a0681135bb0dd2596d"
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID,
 };
+
+console.log("API Key:", process.env.FIREBASE_API_KEY);
+console.log("Auth Domain:", process.env.FIREBASE_AUTH_DOMAIN);
+console.log("Project ID:", process.env.FIREBASE_PROJECT_ID);
 
 // // Initialize Firebase
 // const app = initializeApp(firebaseConfig);

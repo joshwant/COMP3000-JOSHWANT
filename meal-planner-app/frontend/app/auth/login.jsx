@@ -9,7 +9,7 @@ const Login = () => {
     <View style={styles.container}>
       <Text style={styles.text}>Login</Text>
 
-      <Pressable style={styles.button} onPress={() => navigation.navigate('Welcome')}>
+      <Pressable style={styles.button} onPress={() => navigation.navigate('welcome')}>
         <Text style={styles.buttonText}>Welcome</Text>
       </Pressable>
     </View>
