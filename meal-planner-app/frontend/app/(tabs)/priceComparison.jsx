@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native'
 import React from 'react'
 
-const priceComparison = () => {
+const PriceComparison = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Price</Text>
@@ -9,7 +9,7 @@ const priceComparison = () => {
   )
 }
 
-export default priceComparison
+export default PriceComparison
 
 const styles = StyleSheet.create({
   container: {

@@ -10,7 +10,6 @@ const Login = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
   const [loading, setLoading] = useState(false);
 
   const validateFields = () => {
@@ -32,7 +31,6 @@ const Login = () => {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigation.navigate('home');
       console.log('Logged in successfully');
     } catch (error) {
       handleAuthError(error);
@@ -130,5 +128,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     padding: 4,
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
 });
