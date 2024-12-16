@@ -1,25 +1,87 @@
-import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
-import React from 'react';
+import {
+  View, Text, StyleSheet, Pressable, FlatList, Image, Alert, ActivityIndicator, TouchableOpacity,
+} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { AntDesign } from '@expo/vector-icons';
 import logout from '../auth/logout.jsx';
 
 const Home = () => {
+  const [meals, setMeals] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+
+  const fetchMeals = async (pageNumber) => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `https://www.themealdb.com/api/json/v1/1/search.php?f=${String.fromCharCode(
+          96 + pageNumber
+        )}` //Gets meals by first letter (a, b, c, ..)
+      );
+      const data = await response.json();
+      if (data.meals) {
+        setMeals((prevMeals) => [...prevMeals, ...data.meals]);
+      }
+    } catch (error) {
+      console.log('Error fetching meals:', error);
+      Alert.alert('Error', 'Failed to load meals.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMeals(page);
+  }, [page]);
+
   const handleLogout = async () => {
     try {
       await logout();
-      Alert.alert("Logged Out", "You have been logged out successfully.");
-      console.log("Logged out successfully");
+      Alert.alert('Logged Out', 'You have been logged out successfully.');
+      console.log('Logged out successfully');
     } catch (error) {
-      Alert.alert("Error", "Failed to log out. Please try again.");
-      console.log("Error", error.message);
+      Alert.alert('Error', 'Failed to log out. Please try again.');
+      console.log('Error', error.message);
+    }
+  };
+
+  const renderMealCard = ({ item }) => (
+    <View style={styles.card}>
+      <Image source={{ uri: item.strMealThumb }} style={styles.cardImage} />
+      <Text style={styles.cardTitle}>{item.strMeal}</Text>
+      <Text style={styles.cardCategory}>{item.strCategory}</Text>
+    </View>
+  );
+
+  const loadMoreMeals = () => {
+    if (!loading) {
+      setPage((prevPage) => prevPage + 1);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Meal Planner</Text>
-      <Pressable style={styles.button} onPress={handleLogout}>
-        <Text style={styles.buttonText}>Logout</Text>
-      </Pressable>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Hello, Chef</Text>
+        <Pressable onPress={handleLogout} style={styles.logoutButton}>
+          <AntDesign name="logout" size={24} color="black" />
+        </Pressable>
+      </View>
+
+      {/* Meals List */}
+      <FlatList
+        data={meals}
+        renderItem={renderMealCard}
+        keyExtractor={(item) => item.idMeal}
+        numColumns={2}
+        contentContainerStyle={styles.list}
+        onEndReached={loadMoreMeals}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loading ? <ActivityIndicator size="large" color="#0000ff" /> : null
+        }
+      />
     </View>
   );
 };
@@ -29,30 +91,51 @@ export default Home;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'column',
     backgroundColor: 'white',
-    padding: 20,
+    padding: 16,
   },
-  text: {
-    color: 'black',
-    fontSize: 42,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  headerText: {
+    fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 40,
+    color: 'black',
   },
-  button: {
-    height: 60,
-    borderRadius: 20,
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.75)',
-    padding: 6,
-    marginBottom: 20,
+  logoutButton: {
+    padding: 8,
+    backgroundColor: '#f3f3f3',
+    borderRadius: 8,
   },
-  buttonText: {
-    color: 'white',
+  list: {
+    paddingBottom: 16,
+  },
+  card: {
+    flex: 1,
+    margin: 8,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    overflow: 'hidden',
+    elevation: 2,
+  },
+  cardImage: {
+    width: '100%',
+    height: 120,
+  },
+  cardTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
-    padding: 4,
+    marginVertical: 8,
+    color: 'black',
+  },
+  cardCategory: {
+    fontSize: 14,
+    textAlign: 'center',
+    color: 'gray',
+    marginBottom: 8,
   },
 });
