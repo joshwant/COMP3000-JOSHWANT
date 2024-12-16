@@ -1,5 +1,5 @@
 import {
-  View, Text, StyleSheet, Pressable, FlatList, Image, Alert, ActivityIndicator, TouchableOpacity,
+  View, Text, StyleSheet, Pressable, FlatList, Image, Alert, ActivityIndicator,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { AntDesign } from '@expo/vector-icons';
@@ -9,10 +9,12 @@ const Home = () => {
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const [error, setError] = useState(null);
 
   const fetchMeals = async (pageNumber) => {
     try {
       setLoading(true);
+      setError(null);
       const response = await fetch(
         `https://www.themealdb.com/api/json/v1/1/search.php?f=${String.fromCharCode(
           96 + pageNumber
@@ -20,18 +22,27 @@ const Home = () => {
       );
       const data = await response.json();
       if (data.meals) {
-        setMeals((prevMeals) => [...prevMeals, ...data.meals]);
+        setMeals((prevMeals) => {
+          const newMeals = data.meals.filter(
+            (newMeal) => !prevMeals.some((meal) => meal.idMeal === newMeal.idMeal)
+          );
+          return [...prevMeals, ...newMeals];
+        });
+      } else {
+        setPage((prevPage) => prevPage + 1);
       }
     } catch (error) {
-      console.log('Error fetching meals:', error);
-      Alert.alert('Error', 'Failed to load meals.');
+      console.error('Error fetching meals:', error);
+      setError('Failed to load meals. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchMeals(page);
+    if (page <= 26) {
+      fetchMeals(page);
+    }
   }, [page]);
 
   const handleLogout = async () => {
@@ -54,7 +65,7 @@ const Home = () => {
   );
 
   const loadMoreMeals = () => {
-    if (!loading) {
+    if (!loading && page < 26) {
       setPage((prevPage) => prevPage + 1);
     }
   };
@@ -68,20 +79,24 @@ const Home = () => {
           <AntDesign name="logout" size={24} color="black" />
         </Pressable>
       </View>
-
-      {/* Meals List */}
-      <FlatList
-        data={meals}
-        renderItem={renderMealCard}
-        keyExtractor={(item) => item.idMeal}
-        numColumns={2}
-        contentContainerStyle={styles.list}
-        onEndReached={loadMoreMeals}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={
-          loading ? <ActivityIndicator size="large" color="#0000ff" /> : null
-        }
-      />
+      
+      {/* Meal List */}
+      {error ? (
+        <Text style={styles.errorText}>{error}</Text>
+      ) : (
+        <FlatList
+          data={meals}
+          keyExtractor={(item) => item.idMeal}
+          renderItem={renderMealCard}
+          numColumns={2}
+          contentContainerStyle={styles.list}
+          onEndReached={loadMoreMeals}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loading ? <ActivityIndicator size="large" color="#0000ff" /> : null
+          }
+        />
+      )}
     </View>
   );
 };
