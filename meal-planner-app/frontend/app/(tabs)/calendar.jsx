@@ -22,8 +22,15 @@ const MealItem = ({ title, duration, type }) => (
 );
 
 const DaySection = ({ date, meals, onAddMeal }) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const isToday = date.includes('TODAY');
+
   return (
-    <View style={styles.daySection}>
+    <View style={[
+      styles.daySection,
+      isToday && { backgroundColor: 'rgba(0, 122, 255, 0.1)' }
+    ]}>
       <View style={styles.daySectionHeader}>
         <Text style={styles.daySectionTitle}>{date}</Text>
         <Pressable onPress={onAddMeal}>
@@ -127,7 +134,7 @@ const CalendarPage = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Shopping List</Text>
+      <Text style={styles.title}>Meal Planner</Text>
 
       <View style={styles.calendarContainer}>
         <View style={styles.weekView}>
