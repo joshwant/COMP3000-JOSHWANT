@@ -19,7 +19,7 @@ const List = () => {
           console.error('User is not authenticated.');
           return;
         }
-        console.log('Authenticated user UID:', user.uid);
+
         // Query shoppingLists where userId matches the authenticated user
         const q = query(
           collection(db, 'shoppingLists'),
