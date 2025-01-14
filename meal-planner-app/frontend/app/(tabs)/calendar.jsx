@@ -46,36 +46,89 @@ const DaySection = ({ date, meals, onAddMeal }) => {
 const CalendarPage = () => {
   const navigation = useNavigation();
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const scrollViewRef = React.useRef();
 
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => {
-    const date = new Date();
-    date.setDate(date.getDate() - date.getDay() + index);
-    return {
-      day,
-      date: date.getDate(),
-      fullDate: date,
-    };
-  });
+  // For the top calendar - only shows TODAY
+  const getCalendarDayLabel = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  const meals = {
-    'TODAY - NOV 20': [
-      { title: 'Chicken Burgers', duration: '30 Min', type: 'Chicken' }
-    ],
-    'TOMORROW - NOV 21': [],
-    'FRIDAY - NOV 22': [
-      { title: 'Bok Choy', duration: '15 Min', type: 'Vegan' },
-      { title: 'Stir-Fry', duration: '30 Min', type: 'Beef' }
-    ],
-    'SATURDAY - NOV 23': []
+    if (date.toDateString() === today.toDateString()) return 'TODAY';
+    return ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][date.getDay()];
   };
 
-  const handleAddMeal = (date) => {
-    // Implement your add meal logic here
-    console.log('Adding meal for:', date);
+  // For the meal sections - shows YESTERDAY, TODAY, TOMORROW
+  const getSectionDayLabel = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (date.toDateString() === yesterday.toDateString()) return 'YESTERDAY';
+    if (date.toDateString() === today.toDateString()) return 'TODAY';
+    if (date.toDateString() === tomorrow.toDateString()) return 'TOMORROW';
+    return ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][date.getDay()];
   };
+
+  const generateWeekDays = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const currentDay = today.getDay();
+    const days = [];
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - currentDay + i);
+      days.push({
+        day: getCalendarDayLabel(date),
+        date: date.getDate(),
+        fullDate: date,
+      });
+    }
+    return days;
+  };
+
+  const weekDays = generateWeekDays();
+
+  const formatSectionDate = (date) => {
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const dayLabel = getSectionDayLabel(date);
+    return `${dayLabel} - ${months[date.getMonth()]} ${date.getDate()}`;
+  };
+
+  const generateMealsObject = () => {
+    const mealsObj = {};
+    weekDays.forEach(({ fullDate }) => {
+      const dateKey = formatSectionDate(fullDate);
+      mealsObj[dateKey] = [];
+    });
+    return mealsObj;
+  };
+
+  const meals = generateMealsObject();
+
+  useEffect(() => {
+    // Set initial scroll position to todays card
+    const todayIndex = weekDays.findIndex(day =>
+      day.fullDate.toDateString() === new Date().toDateString()
+    );
+    if (todayIndex !== -1 && scrollViewRef.current) {
+      // Add delay for the scroll to happen after render to stop any bugs
+      setTimeout(() => {
+        scrollViewRef.current.scrollTo({
+          y: todayIndex * 150,
+          animated: true
+        });
+      }, 100);
+    }
+  }, []);
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Shopping List</Text>
+
       <View style={styles.calendarContainer}>
         <View style={styles.weekView}>
           {weekDays.map((item, index) => (
@@ -90,7 +143,10 @@ const CalendarPage = () => {
         </View>
       </View>
 
-      <ScrollView style={styles.mealListContainer}>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.mealListContainer}
+      >
         {Object.entries(meals).map(([date, mealList], index) => (
           <DaySection
             key={index}
@@ -108,6 +164,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
+    paddingTop: 16,
+  },
+  title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      textAlign: 'center',
   },
   calendarContainer: {
     backgroundColor: 'white',
