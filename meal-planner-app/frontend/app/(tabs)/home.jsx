@@ -18,47 +18,52 @@ const Home = () => {
 
   // Search function
   const searchMeals = async (query) => {
-        try {
-          setLoading(true);
-          setError(null);
-          const response = await fetch(
-            `https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`
-          );
-          const data = await response.json();
-          if (data.meals) {
-            setMeals(data.meals);
-          } else {
-            setMeals([]);
-            setError('No meals found');
-          }
-        } catch (error) {
-          console.error('Error searching meals:', error);
-          setError('Failed to search meals. Please try again.');
-        } finally {
-          setLoading(false);
-        }
-      };
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(
+        `https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`
+      );
+      const data = await response.json();
+      if (data.meals) {
+        setMeals(data.meals);
+      } else {
+        setMeals([]);
+        setError('No meals found');
+      }
+    } catch (error) {
+      console.error('Error searching meals:', error);
+      setError('Failed to search meals. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      // Handle search input
-      const handleSearch = (text) => {
-        setSearchQuery(text);
-        setIsSearching(true);
+  // Handle search input
+  const handleSearch = (text) => {
+    setSearchQuery(text);
+    setIsSearching(true);
 
-        if (text.trim() === '') {
-          setIsSearching(false);
-          setPage(1);
-          setMeals([]);
-          fetchMeals(1);
-          return;
-        }
+    if (text.trim() === '') {
+      clearSearch();
+      return;
+    }
 
-        // Debounce search (searches 500ms after user stops typing)
-        const timeoutId = setTimeout(() => {
-          searchMeals(text);
-        }, 500);
+    // Debounce search (searches 500ms after user stops typing)
+    const timeoutId = setTimeout(() => {
+      searchMeals(text);
+    }, 500);
 
-        return () => clearTimeout(timeoutId);
-      };
+    return () => clearTimeout(timeoutId);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setIsSearching(false);
+    setPage(1);
+    setMeals([]);
+    fetchMeals(1);
+  };
 
   const fetchMeals = async (pageNumber) => {
     try {
@@ -137,8 +142,12 @@ const Home = () => {
           placeholder="Search meals..."
           value={searchQuery}
           onChangeText={handleSearch}
-          clearButtonMode="while-editing"
         />
+        {searchQuery.length > 0 && (
+          <Pressable onPress={clearSearch}>
+            <AntDesign name="close" size={20} color="gray" style={styles.clearIcon} />
+          </Pressable>
+        )}
       </View>
 
       {/* Meal List */}
@@ -203,6 +212,10 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 8,
     fontSize: 16,
+  },
+  clearIcon: {
+    marginLeft: 10,
+    padding: 5,
   },
   list: {
     paddingBottom: 16,
