@@ -48,7 +48,7 @@ const Home = () => {
       setIsSearching(false);
       setPage(1);
       setMeals([]);
-      fetchMeals(1);
+      fetchMeals(1, true);
       return;
     }
 
