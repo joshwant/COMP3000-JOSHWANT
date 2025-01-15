@@ -42,12 +42,17 @@ const Home = () => {
   // Handle search input
   const handleSearch = (text) => {
     setSearchQuery(text);
-    setIsSearching(true);
 
     if (text.trim() === '') {
-      clearSearch();
+      setSearchQuery('');
+      setIsSearching(false);
+      setPage(1);
+      setMeals([]);
+      fetchMeals(1);
       return;
     }
+
+    setIsSearching(true);
 
     // Debounce search (searches 500ms after user stops typing)
     const timeoutId = setTimeout(() => {
@@ -58,32 +63,37 @@ const Home = () => {
   };
 
   const clearSearch = () => {
-    setSearchQuery('');
-    setIsSearching(false);
-    setPage(1);
-    setMeals([]);
-    fetchMeals(1);
+    handleSearch('');
   };
+
+  useEffect(() => {
+    if (!isSearching) {
+      fetchMeals(page);
+    }
+  }, [page, isSearching]);
 
   const fetchMeals = async (pageNumber) => {
     try {
       setLoading(true);
       setError(null);
+
+      // Fetch meals based on the letter for the page
       const response = await fetch(
-        `https://www.themealdb.com/api/json/v1/1/search.php?f=${String.fromCharCode(
-          96 + pageNumber
-        )}` //Gets meals by first letter (a, b, c, ..)
+        `https://www.themealdb.com/api/json/v1/1/search.php?f=${String.fromCharCode(96 + pageNumber)}`
       );
       const data = await response.json();
+
       if (data.meals) {
         setMeals((prevMeals) => {
+          // Prevent duplicates
           const newMeals = data.meals.filter(
             (newMeal) => !prevMeals.some((meal) => meal.idMeal === newMeal.idMeal)
           );
-          return [...prevMeals, ...newMeals];
+          return pageNumber === 1 ? newMeals : [...prevMeals, ...newMeals];
         });
-      } else {
-        setPage((prevPage) => prevPage + 1);
+      } else if (!data.meals || data.meals.length === 0) {
+        // Move to the next page if no meals are found
+        if (pageNumber < 26) setPage((prevPage) => prevPage + 1);
       }
     } catch (error) {
       console.error('Error fetching meals:', error);
@@ -92,12 +102,6 @@ const Home = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-      if (!isSearching && page <= 26) {
-        fetchMeals(page);
-      }
-    }, [page, isSearching]);
 
   const handleLogout = async () => {
     try {
