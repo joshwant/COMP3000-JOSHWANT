@@ -1,5 +1,5 @@
 import {
-  View, Text, StyleSheet, Pressable, FlatList, Image, Alert, ActivityIndicator, TextInput,
+  View, Text, StyleSheet, Pressable, FlatList, Image, Alert, ActivityIndicator, TextInput, ScrollView,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { AntDesign } from '@expo/vector-icons';
@@ -7,6 +7,8 @@ import logout from '../auth/logout.jsx';
 
 const Home = () => {
   const [meals, setMeals] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [error, setError] = useState(null);
@@ -15,6 +17,46 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
+  // Get meal categories
+  const fetchCategories = async () => {
+    try {
+    setLoading(true);
+    setError(null);
+    const response = await fetch('https://www.themealdb.com/api/json/v1/1/categories.php');
+    const data = await response.json();
+    if(data.categories) {
+        setCategories(data.categories);
+    } else{
+        setError('No categories found');
+      }
+    } catch(error) {
+        console.error('Error fetching categories:', error);
+        setError('Failed to load categories. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+  };
+
+  // Fetch meals by category
+  const fetchMealsByCategory = async (category) => {
+   try {
+    setLoading(true);
+    setError(null);
+    const response = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${category}`);
+    const data = await response.json();
+    if (data.meals) {
+        setMeals(data.meals);
+    } else {
+        setMeals([]);
+        setError(`No meals found for category "${category}"`);
+      }
+    } catch (error) {
+        console.error('Error fetching meals:', error);
+        setError('Failed to fetch meals. Please try again.');
+      } finally {
+        setLoading(false);
+        }
+   };
 
   // Search function
   const searchMeals = async (query) => {
@@ -70,7 +112,12 @@ const Home = () => {
     if (!isSearching) {
       fetchMeals(page);
     }
-  }, [page, isSearching]);
+    if (searchQuery.trim()) {
+      const timeoutId = setTimeout(() => searchMeals(searchQuery), 500);
+      return () => clearTimeout(timeoutId); // Cleanup
+    }
+    fetchCategories();
+  }, [page, isSearching, searchQuery]);
 
   const fetchMeals = async (pageNumber) => {
     try {
@@ -118,9 +165,25 @@ const Home = () => {
     <View style={styles.card}>
       <Image source={{ uri: item.strMealThumb }} style={styles.cardImage} />
       <Text style={styles.cardTitle}>{item.strMeal}</Text>
-      <Text style={styles.cardCategory}>{item.strCategory}</Text>
+      {item.strCategory && <Text style={styles.cardCategory}>{item.strCategory}</Text>}
     </View>
   );
+
+  const renderCategoryButtons = () => (
+      <View style={{ height: 55 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer} contentContainerStyle={{ alignItems: 'center' }}>
+            {categories.map((category) => (
+              <Pressable
+                key={category.idCategory}
+                style={styles.categoryButton}
+                onPress={() => fetchMealsByCategory(category.strCategory)}
+              >
+                <Text style={styles.categoryText}>{category.strCategory}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+      </View>
+    );
 
   const loadMoreMeals = () => {
     if (!loading && page < 26) {
@@ -153,6 +216,9 @@ const Home = () => {
           </Pressable>
         )}
       </View>
+
+      {/* Category Buttons */}
+      {renderCategoryButtons()}
 
       {/* Meal List */}
       {error ? (
@@ -221,6 +287,25 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     padding: 5,
   },
+  categoryContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    paddingHorizontal: 8,
+    height: 50,
+  },
+  categoryButton: {
+    backgroundColor: '#007bff',
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    marginRight: 8,
+  },
+  categoryText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   list: {
     paddingBottom: 16,
   },
@@ -229,6 +314,8 @@ const styles = StyleSheet.create({
     margin: 8,
     backgroundColor: '#f9f9f9',
     borderRadius: 8,
+    borderColor: 'gray',
+    borderWidth: 1,
     overflow: 'hidden',
     elevation: 2,
   },
@@ -237,16 +324,17 @@ const styles = StyleSheet.create({
     height: 120,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
     textAlign: 'center',
     marginVertical: 8,
+    marginHorizontal: 4,
     color: 'black',
   },
   cardCategory: {
     fontSize: 14,
     textAlign: 'center',
     color: 'gray',
-    marginBottom: 8,
+    marginBottom: 14,
   },
 });
