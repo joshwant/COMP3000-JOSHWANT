@@ -89,7 +89,7 @@ const Home = () => {
       setSearchQuery('');
       setIsSearching(false);
       setMeals([]);
-      fetchAllRecipes();
+      fetchAllRecipes(false);
       return;
     }
 
@@ -109,7 +109,7 @@ const Home = () => {
 
   useEffect(() => {
     if (!isSearching) {
-      fetchAllRecipes();
+      fetchAllRecipes(true);
     }
     if (searchQuery.trim()) {
       const timeoutId = setTimeout(() => searchMeals(searchQuery), 500);
@@ -118,7 +118,7 @@ const Home = () => {
     fetchCategories();
   }, [isSearching, searchQuery]);
 
-  const fetchAllRecipes = async () => {
+  const fetchAllRecipes = async (isInitialLoad = false) => {
     try {
       setLoading(true);
       setError(null);
@@ -131,12 +131,16 @@ const Home = () => {
         const shuffledMeals = [...data.meals].sort(() => Math.random() - 0.5);
         const randomMeals = shuffledMeals.slice(0, randomCount);
 
-        setMeals(prevMeals => {
-          const newMeals = randomMeals.filter(
-            newMeal => !prevMeals.some(meal => meal.idMeal === newMeal.idMeal)
-          );
-          return [...prevMeals, ...newMeals];
-        });
+        if (isInitialLoad) {
+          setMeals(prevMeals => {
+            const newMeals = randomMeals.filter(
+              newMeal => !prevMeals.some(meal => meal.idMeal === newMeal.idMeal)
+            );
+            return [...prevMeals, ...newMeals];
+          });
+        } else {
+          setMeals(randomMeals);
+        }
       } else {
         setError('No meals found');
       }
@@ -172,7 +176,7 @@ const Home = () => {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer} contentContainerStyle={{ alignItems: 'center' }}>
         <Pressable
           style={styles.categoryButton}
-          onPress={fetchAllRecipes}
+          onPress={() => fetchAllRecipes(false)}
         >
           <Text style={styles.categoryText}>All Recipes</Text>
         </Pressable>
@@ -192,7 +196,7 @@ const Home = () => {
   const loadMoreMeals = () => {
     if (!loading) {
       setPage(prev => prev + 1);
-      fetchAllRecipes();
+      fetchAllRecipes(true);
     }
   };
 
