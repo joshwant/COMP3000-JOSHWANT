@@ -127,26 +127,25 @@ const Home = () => {
       const data = await response.json();
 
       if (data.meals) {
-        // Filter out meals that have already been shown
-        const availableMeals = data.meals.filter(meal => !usedMealIds.has(meal.idMeal));
+        const availableMeals = data.meals.filter((meal) => !usedMealIds.has(meal.idMeal));
 
         if (availableMeals.length === 0) {
           setLoading(false);
           return;
         }
+
         // Generate random number between 7 and 15 for number of items to show
         const randomCount = Math.floor(Math.random() * (15 - 7 + 1)) + 7;
-        const shuffledMeals = [...data.meals].sort(() => Math.random() - 0.5);
+        const shuffledMeals = [...availableMeals].sort(() => Math.random() - 0.5);
         const randomMeals = shuffledMeals.slice(0, randomCount);
 
         const newUsedMealIds = new Set(usedMealIds);
-        randomMeals.forEach(meal => newUsedMealIds.add(meal.idMeal));
+        randomMeals.forEach((meal) => newUsedMealIds.add(meal.idMeal));
         setUsedMealIds(newUsedMealIds);
 
         if (isInitialLoad) {
-          setMeals(prevMeals => [...prevMeals, ...randomMeals]);
+          setMeals((prevMeals) => [...prevMeals, ...randomMeals]);
         } else {
-          setUsedMealIds(new Set());
           setMeals(randomMeals);
         }
       } else {
@@ -203,8 +202,11 @@ const Home = () => {
 
   const loadMoreMeals = () => {
     if (!loading && meals.length > 0) {
-      setPage(prev => prev + 1);
-      fetchAllRecipes(true);
+      const totalLoadedMeals = usedMealIds.size; // track total meals loaded
+      if (totalLoadedMeals < 500) { // limit to prevent excessive API calls
+        setPage((prev) => prev + 1);
+        fetchAllRecipes(true);
+      }
     }
   };
 
