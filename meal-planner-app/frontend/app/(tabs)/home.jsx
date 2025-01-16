@@ -7,6 +7,7 @@ import logout from '../auth/logout.jsx';
 
 const Home = () => {
   const [meals, setMeals] = useState([]);
+  const [usedMealIds, setUsedMealIds] = useState(new Set());
   const [page, setPage] = useState(1);
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
@@ -126,19 +127,26 @@ const Home = () => {
       const data = await response.json();
 
       if (data.meals) {
+        // Filter out meals that have already been shown
+        const availableMeals = data.meals.filter(meal => !usedMealIds.has(meal.idMeal));
+
+        if (availableMeals.length === 0) {
+          setLoading(false);
+          return;
+        }
         // Generate random number between 7 and 15 for number of items to show
         const randomCount = Math.floor(Math.random() * (15 - 7 + 1)) + 7;
         const shuffledMeals = [...data.meals].sort(() => Math.random() - 0.5);
         const randomMeals = shuffledMeals.slice(0, randomCount);
 
+        const newUsedMealIds = new Set(usedMealIds);
+        randomMeals.forEach(meal => newUsedMealIds.add(meal.idMeal));
+        setUsedMealIds(newUsedMealIds);
+
         if (isInitialLoad) {
-          setMeals(prevMeals => {
-            const newMeals = randomMeals.filter(
-              newMeal => !prevMeals.some(meal => meal.idMeal === newMeal.idMeal)
-            );
-            return [...prevMeals, ...newMeals];
-          });
+          setMeals(prevMeals => [...prevMeals, ...randomMeals]);
         } else {
+          setUsedMealIds(new Set());
           setMeals(randomMeals);
         }
       } else {
@@ -194,7 +202,7 @@ const Home = () => {
   );
 
   const loadMoreMeals = () => {
-    if (!loading) {
+    if (!loading && meals.length > 0) {
       setPage(prev => prev + 1);
       fetchAllRecipes(true);
     }
@@ -235,7 +243,7 @@ const Home = () => {
       ) : (
         <FlatList
           data={meals}
-          keyExtractor={(item) => item.idMeal}
+          keyExtractor={(item, index) => `${item.idMeal}-${index}`}
           renderItem={renderMealCard}
           numColumns={2}
           contentContainerStyle={styles.list}
