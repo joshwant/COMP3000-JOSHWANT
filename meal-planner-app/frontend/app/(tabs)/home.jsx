@@ -120,6 +120,7 @@ const Home = () => {
   }, [isSearching, searchQuery]);
 
   const fetchAllRecipes = async (isInitialLoad = false) => {
+  if (loading) return;
     try {
       setLoading(true);
       setError(null);
@@ -127,7 +128,13 @@ const Home = () => {
       const data = await response.json();
 
       if (data.meals) {
-        const availableMeals = data.meals.filter((meal) => !usedMealIds.has(meal.idMeal));
+        let availableMeals = data.meals;
+
+        if (!isInitialLoad) {
+          setUsedMealIds(new Set());
+        } else {
+          availableMeals = data.meals.filter((meal) => !usedMealIds.has(meal.idMeal));
+        }
 
         if (availableMeals.length === 0) {
           setLoading(false);
@@ -183,7 +190,12 @@ const Home = () => {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer} contentContainerStyle={{ alignItems: 'center' }}>
         <Pressable
           style={styles.categoryButton}
-          onPress={() => fetchAllRecipes(false)}
+          onPress={() => {
+            setSearchQuery(''); // Clear any active search
+            setIsSearching(false);
+            setMeals([]); // Clear list
+            fetchAllRecipes(false);
+          }}
         >
           <Text style={styles.categoryText}>All Recipes</Text>
         </Pressable>
@@ -200,13 +212,15 @@ const Home = () => {
     </View>
   );
 
+  let isFetchingMore = false;
+
   const loadMoreMeals = () => {
-    if (!loading && meals.length > 0) {
-      const totalLoadedMeals = usedMealIds.size; // track total meals loaded
-      if (totalLoadedMeals < 500) { // limit to prevent excessive API calls
-        setPage((prev) => prev + 1);
-        fetchAllRecipes(true);
-      }
+    if (!loading && !isFetchingMore && meals.length > 0) {
+      isFetchingMore = true;
+      setPage((prev) => prev + 1);
+      fetchAllRecipes(true).finally(() => {
+        isFetchingMore = false;
+      });
     }
   };
 
@@ -250,10 +264,16 @@ const Home = () => {
           numColumns={2}
           contentContainerStyle={styles.list}
           onEndReached={loadMoreMeals}
-          onEndReachedThreshold={0.5}
+          onEndReachedThreshold={0.3}
           ListFooterComponent={
             loading ? <ActivityIndicator size="large" color="#0000ff" /> : null
           }
+
+          getItemLayout={(data, index) => ({
+            length: 200,
+            offset: 200 * index,
+            index,
+          })}
         />
       )}
     </View>
