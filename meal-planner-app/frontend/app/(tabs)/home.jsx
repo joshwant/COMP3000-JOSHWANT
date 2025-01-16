@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
     margin: 8,
     backgroundColor: '#f9f9f9',
     borderRadius: 8,
-    borderColor: 'gray',
+    borderColor: 'lightgray',
     borderWidth: 1,
     overflow: 'hidden',
     elevation: 2,
