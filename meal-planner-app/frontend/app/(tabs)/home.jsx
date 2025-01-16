@@ -7,10 +7,10 @@ import logout from '../auth/logout.jsx';
 
 const Home = () => {
   const [meals, setMeals] = useState([]);
+  const [page, setPage] = useState(1);
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
   const [error, setError] = useState(null);
 
   // Search
@@ -88,9 +88,8 @@ const Home = () => {
     if (text.trim() === '') {
       setSearchQuery('');
       setIsSearching(false);
-      setPage(1);
       setMeals([]);
-      fetchMeals(1, true);
+      fetchAllRecipes();
       return;
     }
 
@@ -110,40 +109,39 @@ const Home = () => {
 
   useEffect(() => {
     if (!isSearching) {
-      fetchMeals(page);
+      fetchAllRecipes();
     }
     if (searchQuery.trim()) {
       const timeoutId = setTimeout(() => searchMeals(searchQuery), 500);
       return () => clearTimeout(timeoutId); // Cleanup
     }
     fetchCategories();
-  }, [page, isSearching, searchQuery]);
+  }, [isSearching, searchQuery]);
 
-  const fetchMeals = async (pageNumber) => {
+  const fetchAllRecipes = async () => {
     try {
       setLoading(true);
       setError(null);
-
-      // Fetch meals based on the letter for the page
-      const response = await fetch(
-        `https://www.themealdb.com/api/json/v1/1/search.php?f=${String.fromCharCode(96 + pageNumber)}`
-      );
+      const response = await fetch('https://www.themealdb.com/api/json/v1/1/search.php?s=');
       const data = await response.json();
 
       if (data.meals) {
-        setMeals((prevMeals) => {
-          // Prevent duplicates
-          const newMeals = data.meals.filter(
-            (newMeal) => !prevMeals.some((meal) => meal.idMeal === newMeal.idMeal)
+        // Generate random number between 7 and 15 for number of items to show
+        const randomCount = Math.floor(Math.random() * (15 - 7 + 1)) + 7;
+        const shuffledMeals = [...data.meals].sort(() => Math.random() - 0.5);
+        const randomMeals = shuffledMeals.slice(0, randomCount);
+
+        setMeals(prevMeals => {
+          const newMeals = randomMeals.filter(
+            newMeal => !prevMeals.some(meal => meal.idMeal === newMeal.idMeal)
           );
-          return pageNumber === 1 ? newMeals : [...prevMeals, ...newMeals];
+          return [...prevMeals, ...newMeals];
         });
-      } else if (!data.meals || data.meals.length === 0) {
-        // Move to the next page if no meals are found
-        if (pageNumber < 26) setPage((prevPage) => prevPage + 1);
+      } else {
+        setError('No meals found');
       }
     } catch (error) {
-      console.error('Error fetching meals:', error);
+      console.error('Error fetching all meals:', error);
       setError('Failed to load meals. Please try again.');
     } finally {
       setLoading(false);
@@ -170,24 +168,31 @@ const Home = () => {
   );
 
   const renderCategoryButtons = () => (
-      <View style={{ height: 55 }}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer} contentContainerStyle={{ alignItems: 'center' }}>
-            {categories.map((category) => (
-              <Pressable
-                key={category.idCategory}
-                style={styles.categoryButton}
-                onPress={() => fetchMealsByCategory(category.strCategory)}
-              >
-                <Text style={styles.categoryText}>{category.strCategory}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-      </View>
-    );
+    <View style={{ height: 55 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer} contentContainerStyle={{ alignItems: 'center' }}>
+        <Pressable
+          style={styles.categoryButton}
+          onPress={fetchAllRecipes}
+        >
+          <Text style={styles.categoryText}>All Recipes</Text>
+        </Pressable>
+        {categories.map((category) => (
+          <Pressable
+            key={category.idCategory}
+            style={styles.categoryButton}
+            onPress={() => fetchMealsByCategory(category.strCategory)}
+          >
+            <Text style={styles.categoryText}>{category.strCategory}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
 
   const loadMoreMeals = () => {
-    if (!loading && page < 26) {
-      setPage((prevPage) => prevPage + 1);
+    if (!loading) {
+      setPage(prev => prev + 1);
+      fetchAllRecipes();
     }
   };
 
