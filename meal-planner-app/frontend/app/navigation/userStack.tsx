@@ -6,6 +6,7 @@ import HomeScreen from '../(tabs)/home';
 import CalendarScreen from '../(tabs)/calendar';
 import ListScreen from '../(tabs)/list';
 import PriceComparisonScreen from '../(tabs)/priceComparison';
+import MealDetailsScreen from '../(tabs)/mealDetails';
 import { Colors } from '../../constants/Colors';
 
 const Tab = createBottomTabNavigator();

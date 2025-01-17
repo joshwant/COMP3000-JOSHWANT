@@ -4,8 +4,9 @@ import {
 import React, { useEffect, useState } from 'react';
 import { AntDesign } from '@expo/vector-icons';
 import logout from '../auth/logout.jsx';
+import MealDetails from '../(tabs)/mealDetails.jsx';
 
-const Home = () => {
+const Home = ({navigation}) => {
   const [meals, setMeals] = useState([]);
   const [usedMealIds, setUsedMealIds] = useState(new Set());
   const [page, setPage] = useState(1);
@@ -181,13 +182,17 @@ const Home = () => {
     }
   };
 
-  const renderMealCard = ({ item }) => (
-    <View style={styles.card}>
-      <Image source={{ uri: item.strMealThumb }} style={styles.cardImage} />
-      <Text style={styles.cardTitle}>{item.strMeal}</Text>
-      {item.strCategory && <Text style={styles.cardCategory}>{item.strCategory}</Text>}
-    </View>
-  );
+    const renderMealCard = ({ item }) => (
+      <Pressable
+        style={styles.card}
+        onPress={() => navigation.navigate('MealDetails', { mealId: item.idMeal })}
+      >
+        <Image source={{ uri: item.strMealThumb }} style={styles.cardImage} />
+        <Text style={styles.cardTitle}>{item.strMeal}</Text>
+        {item.strCategory && <Text style={styles.cardCategory}>{item.strCategory}</Text>}
+      </Pressable>
+    );
+
 
   const renderCategoryButtons = () => (
     <View style={{ height: 55 }}>
