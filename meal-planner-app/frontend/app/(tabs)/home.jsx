@@ -17,6 +17,7 @@ const Home = () => {
   //testing
   const [hasMoreData, setHasMoreData] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isViewingCategory, setIsViewingCategory] = useState(false);
 
   // Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,6 +48,9 @@ const Home = () => {
    try {
     setLoading(true);
     setError(null);
+    setMeals([]);
+    setIsViewingCategory(true);
+
     const response = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${category}`);
     const data = await response.json();
     if (data.meals) {
@@ -193,7 +197,8 @@ const Home = () => {
             setError(null);
             setLoading(false);
             setMeals([]); // Clear list
-            fetchAllRecipes(true);
+            setIsViewingCategory(false);
+            fetchAllRecipes(false);
           }}
         >
           <Text style={styles.categoryText}>All Recipes</Text>
@@ -212,7 +217,7 @@ const Home = () => {
   );
 
   const loadMoreMeals = () => {
-    if (!loading && hasMoreData) {
+    if (!loading && hasMoreData && !isViewingCategory) {
       fetchAllRecipes(false);
       setPage((prevPage) => prevPage + 1);
     }
