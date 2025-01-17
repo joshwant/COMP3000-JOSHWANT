@@ -185,7 +185,7 @@ const Home = ({navigation}) => {
     const renderMealCard = ({ item }) => (
       <Pressable
         style={styles.card}
-        onPress={() => navigation.navigate('MealDetails', { mealId: item.idMeal })}
+        onPress={() => navigation.navigate('meal-details', { mealId: item.idMeal })}
       >
         <Image source={{ uri: item.strMealThumb }} style={styles.cardImage} />
         <Text style={styles.cardTitle}>{item.strMeal}</Text>
