@@ -26,6 +26,7 @@ function HomeStack() {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
+        headerTitleAlign: 'center',
       }}
     >
       <Stack.Screen
@@ -36,7 +37,7 @@ function HomeStack() {
       <Stack.Screen
         name="meal-details"
         component={MealDetailsScreen}
-        options={{ headerShown: true, title: 'Meal Details'}}
+        options={({ route }) => ({ headerShown: true, title: route.params?.mealName || 'Meal Details'})}
       />
     </Stack.Navigator>
   );
@@ -72,7 +73,12 @@ export default function UserStack() {
             backgroundColor: 'white',
             borderTopWidth: 0,
             elevation: 0,
-            shadowOpacity: 0,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            paddingTop: 10,
+            height: 60,
         },
       })}
     >

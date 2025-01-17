@@ -185,7 +185,7 @@ const Home = ({navigation}) => {
     const renderMealCard = ({ item }) => (
       <Pressable
         style={styles.card}
-        onPress={() => navigation.navigate('meal-details', { mealId: item.idMeal })}
+        onPress={() => navigation.navigate('meal-details', { mealId: item.idMeal, mealName: item.strMeal })}
       >
         <Image source={{ uri: item.strMealThumb }} style={styles.cardImage} />
         <Text style={styles.cardTitle}>{item.strMeal}</Text>
@@ -289,6 +289,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'white',
     padding: 16,
+    paddingBottom: 0,
   },
   header: {
     flexDirection: 'row',
