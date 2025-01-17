@@ -100,10 +100,7 @@ const Home = ({navigation}) => {
     setSearchQuery(text);
 
     if (text.trim() === '') {
-      setSearchQuery('');
-      setIsSearching(false);
-      setMeals([]);
-      fetchAllRecipes(false);
+      clearSearch();
       return;
     }
 
@@ -118,12 +115,16 @@ const Home = ({navigation}) => {
   };
 
   const clearSearch = () => {
-    handleSearch('');
+    setSearchQuery('');
+    setIsSearching(false);
+    setMeals([]);
+    fetchAllRecipes(true);
   };
+
 
   useEffect(() => {
     if (!isSearching) {
-      fetchAllRecipes(true);
+      fetchAllRecipes(true); // Only fetch all recipes if not searching
     }
     if (searchQuery.trim()) {
       const timeoutId = setTimeout(() => searchMeals(searchQuery), 500);
@@ -133,7 +134,7 @@ const Home = ({navigation}) => {
   }, [isSearching, searchQuery]);
 
   const fetchAllRecipes = async (isInitialLoad = false) => {
-    if (loading || page > 26) return;
+    if (loading || page > 26 || isSearching) return;
 
     try {
       setLoading(true);
@@ -226,7 +227,7 @@ const Home = ({navigation}) => {
   );
 
   const loadMoreMeals = () => {
-    if (!loading && hasMoreData && !isViewingCategory) {
+    if (!loading && hasMoreData && !isViewingCategory && !isSearching) {
       fetchAllRecipes(false);
       setPage((prevPage) => prevPage + 1);
     }
