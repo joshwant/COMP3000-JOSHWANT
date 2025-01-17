@@ -14,6 +14,10 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  //testing
+  const [hasMoreData, setHasMoreData] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+
   // Search
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -120,46 +124,38 @@ const Home = () => {
   }, [isSearching, searchQuery]);
 
   const fetchAllRecipes = async (isInitialLoad = false) => {
-  if (loading) return;
+    if (loading || page > 26) return;
+
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('https://www.themealdb.com/api/json/v1/1/search.php?s=');
+
+      const letter = String.fromCharCode(96 + page);
+      const response = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?f=${letter}`);
       const data = await response.json();
 
       if (data.meals) {
-        let availableMeals = data.meals;
+        setMeals((prevMeals) => {
+          // Filter out duplicates
+          const newMeals = data.meals.filter(
+            (newMeal) => !prevMeals.some((meal) => meal.idMeal === newMeal.idMeal)
+          );
+          return isInitialLoad ? newMeals : [...prevMeals, ...newMeals];
+        });
 
-        if (!isInitialLoad) {
-          setUsedMealIds(new Set());
-        } else {
-          availableMeals = data.meals.filter((meal) => !usedMealIds.has(meal.idMeal));
-        }
-
-        if (availableMeals.length === 0) {
-          setLoading(false);
-          return;
-        }
-
-        // Generate random number between 7 and 15 for number of items to show
-        const randomCount = Math.floor(Math.random() * (15 - 7 + 1)) + 7;
-        const shuffledMeals = [...availableMeals].sort(() => Math.random() - 0.5);
-        const randomMeals = shuffledMeals.slice(0, randomCount);
-
-        const newUsedMealIds = new Set(usedMealIds);
-        randomMeals.forEach((meal) => newUsedMealIds.add(meal.idMeal));
-        setUsedMealIds(newUsedMealIds);
-
-        if (isInitialLoad) {
-          setMeals((prevMeals) => [...prevMeals, ...randomMeals]);
-        } else {
-          setMeals(randomMeals);
-        }
-      } else {
-        setError('No meals found');
+        // Track used letters to prevent redundant fetching
+        setUsedMealIds((prevIds) => {
+          const newIds = new Set(prevIds);
+          data.meals.forEach((meal) => newIds.add(meal.idMeal));
+          return newIds;
+        });
+      } else if (!data.meals) {
+        // Increment page if no meals are found for the letter
+        if (page < 26) setPage((prevPage) => prevPage + 1);
+        else setHasMoreData(false); // No more data to fetch
       }
     } catch (error) {
-      console.error('Error fetching all meals:', error);
+      console.error('Error fetching meals:', error);
       setError('Failed to load meals. Please try again.');
     } finally {
       setLoading(false);
@@ -193,8 +189,11 @@ const Home = () => {
           onPress={() => {
             setSearchQuery(''); // Clear any active search
             setIsSearching(false);
+            setPage(1); // Sets all recipe page back to 1
+            setError(null);
+            setLoading(false);
             setMeals([]); // Clear list
-            fetchAllRecipes(false);
+            fetchAllRecipes(true);
           }}
         >
           <Text style={styles.categoryText}>All Recipes</Text>
@@ -212,15 +211,10 @@ const Home = () => {
     </View>
   );
 
-  let isFetchingMore = false;
-
   const loadMoreMeals = () => {
-    if (!loading && !isFetchingMore && meals.length > 0) {
-      isFetchingMore = true;
-      setPage((prev) => prev + 1);
-      fetchAllRecipes(true).finally(() => {
-        isFetchingMore = false;
-      });
+    if (!loading && hasMoreData) {
+      fetchAllRecipes(false);
+      setPage((prevPage) => prevPage + 1);
     }
   };
 
@@ -264,16 +258,10 @@ const Home = () => {
           numColumns={2}
           contentContainerStyle={styles.list}
           onEndReached={loadMoreMeals}
-          onEndReachedThreshold={0.3}
+          onEndReachedThreshold={0.5}
           ListFooterComponent={
-            loading ? <ActivityIndicator size="large" color="#0000ff" /> : null
+            loading && <ActivityIndicator size="large" color="blue" />
           }
-
-          getItemLayout={(data, index) => ({
-            length: 200,
-            offset: 200 * index,
-            index,
-          })}
         />
       )}
     </View>
