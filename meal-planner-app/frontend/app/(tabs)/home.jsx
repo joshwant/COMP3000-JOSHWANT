@@ -54,7 +54,11 @@ const Home = () => {
     const response = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${category}`);
     const data = await response.json();
     if (data.meals) {
-        setMeals(data.meals);
+        const mealsWithCategory = data.meals.map(meal => ({
+                ...meal,
+                strCategory: category
+              }));
+        setMeals(mealsWithCategory);
     } else {
         setMeals([]);
         setError(`No meals found for category "${category}"`);
