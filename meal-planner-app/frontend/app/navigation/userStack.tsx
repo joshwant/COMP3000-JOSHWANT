@@ -15,7 +15,19 @@ const Stack = createStackNavigator();
 
 function HomeStack() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+    screenOptions={{
+        headerStyle: {
+          backgroundColor: 'white',
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        headerTintColor: 'black',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }}
+    >
       <Stack.Screen
         name="home"
         component={HomeScreen}
@@ -24,7 +36,7 @@ function HomeStack() {
       <Stack.Screen
         name="meal-details"
         component={MealDetailsScreen}
-        options={{ headerShown: true, title: 'Meal Details' }}
+        options={{ headerShown: true, title: 'Meal Details'}}
       />
     </Stack.Navigator>
   );
@@ -56,6 +68,12 @@ export default function UserStack() {
           }
         },
         tabBarShowLabel: false,
+        tabBarStyle: {
+            backgroundColor: 'white',
+            borderTopWidth: 0,
+            elevation: 0,
+            shadowOpacity: 0,
+        },
       })}
     >
       <Tab.Screen name="home" component={HomeStack} />
