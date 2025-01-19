@@ -23,6 +23,7 @@ const Home = ({navigation}) => {
   // Add to calendar popup
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   // Get meal categories
   const fetchCategories = async () => {
@@ -214,8 +215,6 @@ const Home = ({navigation}) => {
     );
   };
 
-
-
   const renderCategoryButtons = () => (
     <View style={{ height: 55 }}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer} contentContainerStyle={{ alignItems: 'center' }}>
@@ -252,6 +251,24 @@ const Home = ({navigation}) => {
       fetchAllRecipes(false);
       setPage((prevPage) => prevPage + 1);
     }
+  };
+
+  const generateWeekDates = () => {
+    const today = new Date();
+    const sunday = new Date(today);
+    sunday.setDate(today.getDate() - today.getDay()); // Sunday
+
+    const week = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(sunday);
+      date.setDate(sunday.getDate() + i);
+      week.push({
+        day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i],
+        date: date.getDate(),
+        fullDate: date
+      });
+    }
+    return week;
   };
 
   return (
@@ -306,10 +323,42 @@ const Home = ({navigation}) => {
       <Modal visible={isModalVisible} transparent={true}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add to Meal Plan</Text>
+            <Text style={styles.modalTitle}>Add Meal to Calendar</Text>
+
             {selectedMeal && (
-              <Text style={styles.modalMealName}>{selectedMeal.strMeal}</Text>
+                <View style={styles.mealInfoContainer}>
+                  <Image
+                    source={{ uri: selectedMeal.strMealThumb }}
+                    style={styles.modalImage}
+                  />
+                  <View style={styles.mealTextContainer}>
+                    <Text style={styles.modalMealName}>{selectedMeal.strMeal}</Text>
+                    <Text style={styles.modalMealTime}>30 Min • Chicken</Text>
+                  </View>
+                </View>
             )}
+
+            <Text style={styles.selectDayText}>Select Day:</Text>
+
+            <View style={styles.calendarContainer}>
+            {generateWeekDates().map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.dayButton,
+                  selectedDate === item.fullDate && styles.selectedDay
+                ]}
+                onPress={() => setSelectedDate(item.fullDate)}
+              >
+                <Text style={styles.dayText}>{item.day}</Text>
+                <Text style={[
+                  styles.dateText,
+                  selectedDate === item.fullDate && styles.selectedDateText
+                ]}>{item.date}</Text>
+              </TouchableOpacity>
+            ))}
+            </View>
+
             <TouchableOpacity
               style={styles.saveButton}
               onPress={() => {
@@ -444,7 +493,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    width: '80%',
+    width: '90%',
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 8,
@@ -455,10 +504,57 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
-  modalMealName: {
-    fontSize: 16,
-    textAlign: 'center',
+  mealInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 20,
+  },
+  modalImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+  },
+  mealTextContainer: {
+    marginLeft: 15,
+    flex: 1,
+  },
+  modalMealName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  modalMealTime: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  selectDayText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 10,
+  },
+  calendarContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  dayButton: {
+    alignItems: 'center',
+    padding: 8,
+    borderRadius: 8,
+  },
+  selectedDay: {
+    backgroundColor: '#007bff',
+  },
+  dayText: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  dateText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  selectedDateText: {
+    color: 'white',
   },
   saveButton: {
     backgroundColor: '#007bff',
