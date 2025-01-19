@@ -1,5 +1,5 @@
 import {
-  View, Text, StyleSheet, Pressable, FlatList, Image, Alert, ActivityIndicator, TextInput, ScrollView,
+  View, Text, StyleSheet, Pressable, FlatList, Image, Alert, ActivityIndicator, TextInput, ScrollView, Dimensions
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { AntDesign } from '@expo/vector-icons';
@@ -183,16 +183,20 @@ const Home = ({navigation}) => {
     }
   };
 
-    const renderMealCard = ({ item }) => (
-      <Pressable
-        style={styles.card}
-        onPress={() => navigation.navigate('meal-details', { mealId: item.idMeal, mealName: item.strMeal })}
-      >
-        <Image source={{ uri: item.strMealThumb }} style={styles.cardImage} />
-        <Text style={styles.cardTitle}>{item.strMeal}</Text>
-        {item.strCategory && <Text style={styles.cardCategory}>{item.strCategory}</Text>}
-      </Pressable>
-    );
+    const renderMealCard = ({ item }) => {
+      const cardWidth = (Dimensions.get('window').width - 62) / 2; // 32 = total horizontal padding (16 on each side)
+      return (
+        <Pressable
+          style={[styles.card, { width: cardWidth }]} // Set a fixed width for each card
+          onPress={() => navigation.navigate('meal-details', { mealId: item.idMeal, mealName: item.strMeal })}
+        >
+          <Image source={{ uri: item.strMealThumb }} style={styles.cardImage} />
+          <Text style={styles.cardTitle}>{item.strMeal}</Text>
+          {item.strCategory && <Text style={styles.cardCategory}>{item.strCategory}</Text>}
+        </Pressable>
+      );
+    };
+
 
 
   const renderCategoryButtons = () => (
@@ -277,6 +281,7 @@ const Home = ({navigation}) => {
           ListFooterComponent={
             loading && <ActivityIndicator size="large" color="blue" />
           }
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
@@ -353,7 +358,6 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   card: {
-    flex: 1,
     margin: 8,
     backgroundColor: '#f9f9f9',
     borderRadius: 8,

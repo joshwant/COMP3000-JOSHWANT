@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView } from 'react-native';
 import React, { useEffect, useState } from 'react';
 
 const MealDetails = ({ route }) => {
@@ -47,16 +47,18 @@ const MealDetails = ({ route }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       {meal && (
         <>
           <Image source={{ uri: meal.strMealThumb }} style={styles.image} />
-          <Text style={styles.title}>{meal.strMeal}</Text>
+
+          <Text style={styles.area}>{meal.strArea}</Text>
           <Text style={styles.category}>{meal.strCategory}</Text>
+
           <Text style={styles.instructions}>{meal.strInstructions}</Text>
         </>
       )}
-    </View>
+    </ScrollView>
   );
 };
 
@@ -85,6 +87,11 @@ const styles = StyleSheet.create({
     color: 'gray',
     marginBottom: 16,
   },
+  area: {
+      fontSize: 18,
+      color: 'gray',
+      marginBottom: 16,
+    },
   instructions: {
     fontSize: 16,
     color: 'black',
