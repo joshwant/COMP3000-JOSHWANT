@@ -73,7 +73,7 @@ const MealDetails = ({ route }) => {
         <>
           <Image source={{ uri: meal.strMealThumb }} style={styles.image} />
 
-          <Text style={styles.areaCategory}>{meal.strArea} - {meal.strCategory}</Text>
+          <Text style={styles.areaCategory}>{meal.strArea} • {meal.strCategory}</Text>
 
           <View style={styles.tabContainer}>
             <TouchableOpacity
@@ -145,13 +145,21 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   activeTab: {
-    backgroundColor: 'green',
+    backgroundColor: '#4CAF50',
   },
   tabText: {
     fontSize: 16,
+    color: '#666',
   },
   activeTabText: {
     color: 'white',
+  },
+  contentContainer: {
+    paddingHorizontal: 4,
+  },
+  ingredientText: {
+    fontSize: 16,
+    marginBottom: 8,
   },
   instructions: {
     fontSize: 16,
