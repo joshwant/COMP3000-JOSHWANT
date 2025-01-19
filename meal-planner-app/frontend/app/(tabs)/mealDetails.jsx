@@ -52,8 +52,7 @@ const MealDetails = ({ route }) => {
         <>
           <Image source={{ uri: meal.strMealThumb }} style={styles.image} />
 
-          <Text style={styles.area}>{meal.strArea}</Text>
-          <Text style={styles.category}>{meal.strCategory}</Text>
+          <Text style={styles.areaCategory}>{meal.strArea} - {meal.strCategory}</Text>
 
           <Text style={styles.instructions}>{meal.strInstructions}</Text>
         </>
@@ -74,7 +73,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
     borderRadius: 8,
-    marginBottom: 16,
+    marginBottom: 8,
   },
   title: {
     fontSize: 24,
@@ -82,19 +81,16 @@ const styles = StyleSheet.create({
     color: 'black',
     marginBottom: 8,
   },
-  category: {
-    fontSize: 18,
+  areaCategory: {
+    fontSize: 16,
     color: 'gray',
+    textAlign: 'center',
     marginBottom: 16,
   },
-  area: {
-      fontSize: 18,
-      color: 'gray',
-      marginBottom: 16,
-    },
   instructions: {
     fontSize: 16,
     color: 'black',
+    lineHeight: 24,
   },
   errorText: {
     fontSize: 18,
