@@ -1,5 +1,5 @@
 import {
-  View, Text, StyleSheet, Pressable, FlatList, Image, Alert, ActivityIndicator, TextInput, ScrollView, Dimensions
+  View, Text, StyleSheet, Pressable, FlatList, Image, Alert, ActivityIndicator, TextInput, ScrollView, Dimensions, Modal, TouchableOpacity,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { AntDesign } from '@expo/vector-icons';
@@ -14,15 +14,15 @@ const Home = ({navigation}) => {
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  //testing
   const [hasMoreData, setHasMoreData] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [isViewingCategory, setIsViewingCategory] = useState(false);
-
   // Search
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  // Add to calendar popup
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [selectedMeal, setSelectedMeal] = useState(null);
 
   // Get meal categories
   const fetchCategories = async () => {
@@ -183,19 +183,36 @@ const Home = ({navigation}) => {
     }
   };
 
-    const renderMealCard = ({ item }) => {
-      const cardWidth = (Dimensions.get('window').width - 62) / 2; // 32 = total horizontal padding (16 on each side)
-      return (
-        <Pressable
-          style={[styles.card, { width: cardWidth }]} // Set a fixed width for each card
-          onPress={() => navigation.navigate('meal-details', { mealId: item.idMeal, mealName: item.strMeal })}
-        >
-          <Image source={{ uri: item.strMealThumb }} style={styles.cardImage} />
-          <Text style={styles.cardTitle}>{item.strMeal}</Text>
-          {item.strCategory && <Text style={styles.cardCategory}>{item.strCategory}</Text>}
-        </Pressable>
-      );
+  const renderMealCard = ({ item }) => {
+    const cardWidth = (Dimensions.get('window').width - 62) / 2;
+
+    const handleAddMeal = () => {
+      setSelectedMeal(item);
+      setModalVisible(true);
     };
+
+    return (
+      <Pressable
+        style={[styles.card, { width: cardWidth }]}
+        onPress={() => navigation.navigate('meal-details', { mealId: item.idMeal, mealName: item.strMeal })}
+      >
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: item.strMealThumb }} style={styles.cardImage} />
+          <Pressable
+            style={styles.addButton}
+            onPress={(e) => {
+              e.stopPropagation();
+              handleAddMeal();
+            }}
+          >
+            <AntDesign name="plus" size={20} color="white" />
+          </Pressable>
+        </View>
+        <Text style={styles.cardTitle}>{item.strMeal}</Text>
+        {item.strCategory && <Text style={styles.cardCategory}>{item.strCategory}</Text>}
+      </Pressable>
+    );
+  };
 
 
 
@@ -284,6 +301,38 @@ const Home = ({navigation}) => {
           showsVerticalScrollIndicator={false}
         />
       )}
+
+      {/* Add Meal Plan Modal */}
+      <Modal visible={isModalVisible} transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Add to Meal Plan</Text>
+            {selectedMeal && (
+              <Text style={styles.modalMealName}>{selectedMeal.strMeal}</Text>
+            )}
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={() => {
+                // need to add functionality
+                console.log('Adding to meal plan:', selectedMeal?.strMeal);
+                setModalVisible(false);
+                setSelectedMeal(null);
+              }}
+            >
+              <Text style={styles.saveButtonText}>Add</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => {
+                setModalVisible(false);
+                setSelectedMeal(null);
+              }}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -313,6 +362,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f3f3f3',
     borderRadius: 8,
   },
+
   searchContainer: {
     marginBottom: 16,
     flexDirection: 'row',
@@ -335,6 +385,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     padding: 5,
   },
+
   categoryContainer: {
     flexDirection: 'row',
     marginBottom: 16,
@@ -357,6 +408,7 @@ const styles = StyleSheet.create({
   list: {
     paddingBottom: 16,
   },
+
   card: {
     margin: 8,
     backgroundColor: '#f9f9f9',
@@ -383,5 +435,65 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'gray',
     marginBottom: 14,
+  },
+
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 8,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalMealName: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  saveButton: {
+    backgroundColor: '#007bff',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  cancelButton: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#007bff',
+    fontSize: 16,
+  },
+  imageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 120,
+  },
+  addButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#007bff',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
   },
 });

@@ -97,7 +97,7 @@ const List = () => {
       </TouchableOpacity>
 
       {/* Add Item Modal */}
-      <Modal visible={isModalVisible} animationType="slide" transparent={true}>
+      <Modal visible={isModalVisible} transparent={true}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add Item</Text>
@@ -167,8 +167,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addButtonText: {
-    fontSize: 24,
+    fontSize: 34,
     color: 'white',
+    paddingBottom: 5,
   },
   modalContainer: {
     flex: 1,
