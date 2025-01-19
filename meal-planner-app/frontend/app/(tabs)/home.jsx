@@ -23,7 +23,7 @@ const Home = ({navigation}) => {
   // Add to calendar popup
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   // Get meal categories
   const fetchCategories = async () => {
@@ -255,6 +255,7 @@ const Home = ({navigation}) => {
 
   const generateWeekDates = () => {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const sunday = new Date(today);
     sunday.setDate(today.getDate() - today.getDay()); // Sunday
 
@@ -265,7 +266,7 @@ const Home = ({navigation}) => {
       week.push({
         day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i],
         date: date.getDate(),
-        fullDate: date
+        fullDate: date,
       });
     }
     return week;
@@ -333,7 +334,9 @@ const Home = ({navigation}) => {
                   />
                   <View style={styles.mealTextContainer}>
                     <Text style={styles.modalMealName}>{selectedMeal.strMeal}</Text>
-                    <Text style={styles.modalMealTime}>30 Min • Chicken</Text>
+                    <Text style={styles.areaCategory}>
+                      {selectedMeal.strArea} • {selectedMeal.strCategory}
+                    </Text>
                   </View>
                 </View>
             )}
@@ -341,22 +344,29 @@ const Home = ({navigation}) => {
             <Text style={styles.selectDayText}>Select Day:</Text>
 
             <View style={styles.calendarContainer}>
-            {generateWeekDates().map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.dayButton,
-                  selectedDate === item.fullDate && styles.selectedDay
-                ]}
-                onPress={() => setSelectedDate(item.fullDate)}
-              >
-                <Text style={styles.dayText}>{item.day}</Text>
-                <Text style={[
-                  styles.dateText,
-                  selectedDate === item.fullDate && styles.selectedDateText
-                ]}>{item.date}</Text>
-              </TouchableOpacity>
-            ))}
+              {generateWeekDates().map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.dayButton,
+                    selectedDate && selectedDate.toDateString() === item.fullDate.toDateString() && styles.selectedDay
+                  ]}
+                  onPress={() => setSelectedDate(item.fullDate)}
+                >
+                  <Text style={[
+                    styles.dayText,
+                    selectedDate && selectedDate.toDateString() === item.fullDate.toDateString() && styles.selectedDateText
+                  ]}>
+                    {item.day}
+                  </Text>
+                  <Text style={[
+                    styles.dateText,
+                    selectedDate && selectedDate.toDateString() === item.fullDate.toDateString() && styles.selectedDateText
+                  ]}>
+                    {item.date}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
 
             <TouchableOpacity
@@ -499,7 +509,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
@@ -522,15 +532,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  modalMealTime: {
+  areaCategory: {
     fontSize: 14,
     color: '#666',
     marginTop: 4,
   },
   selectDayText: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 10,
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
   },
   calendarContainer: {
     flexDirection: 'row',
@@ -544,6 +555,7 @@ const styles = StyleSheet.create({
   },
   selectedDay: {
     backgroundColor: '#007bff',
+    color: 'white',
   },
   dayText: {
     fontSize: 14,
