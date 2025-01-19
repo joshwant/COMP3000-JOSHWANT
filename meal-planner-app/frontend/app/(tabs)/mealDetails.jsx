@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 import React, { useEffect, useState } from 'react';
 
 const MealDetails = ({ route }) => {
@@ -6,6 +6,7 @@ const MealDetails = ({ route }) => {
   const [meal, setMeal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('ingredients');
 
   useEffect(() => {
     const fetchMealDetails = async () => {
@@ -29,6 +30,26 @@ const MealDetails = ({ route }) => {
 
     fetchMealDetails();
   }, [mealId]);
+
+  const getIngredientsList = () => {
+    if (!meal) return [];
+    const ingredients = [];
+
+    let i = 1;
+    while (meal[`strIngredient${i}`]) {
+      const ingredient = meal[`strIngredient${i}`];
+      const measure = meal[`strMeasure${i}`] || '';
+
+      if (ingredient.trim()) {
+        const formattedIngredient = measure.trim()
+          ? `${measure.trim()} ${ingredient.trim()}`
+          : ingredient.trim();
+        ingredients.push(formattedIngredient);
+      }
+      i++;
+    }
+    return ingredients;
+  };
 
   if (loading) {
     return (
@@ -54,7 +75,36 @@ const MealDetails = ({ route }) => {
 
           <Text style={styles.areaCategory}>{meal.strArea} - {meal.strCategory}</Text>
 
-          <Text style={styles.instructions}>{meal.strInstructions}</Text>
+          <View style={styles.tabContainer}>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'ingredients' && styles.activeTab]}
+              onPress={() => setActiveTab('ingredients')}
+            >
+              <Text style={[styles.tabText, activeTab === 'ingredients' && styles.activeTabText]}>
+                Ingredients
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'instructions' && styles.activeTab]}
+              onPress={() => setActiveTab('instructions')}
+            >
+              <Text style={[styles.tabText, activeTab === 'instructions' && styles.activeTabText]}>
+                Instructions
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {activeTab === 'ingredients' ? (
+            <View style={styles.contentContainer}>
+              {getIngredientsList().map((ingredient, index) => (
+                <Text key={index} style={styles.ingredientText}>• {ingredient}</Text>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.contentContainer}>
+              <Text style={styles.instructions}>{meal.strInstructions}</Text>
+            </View>
+          )}
         </>
       )}
     </ScrollView>
@@ -75,17 +125,33 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 8,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'black',
-    marginBottom: 8,
-  },
   areaCategory: {
     fontSize: 16,
     color: 'gray',
     textAlign: 'center',
     marginBottom: 16,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    borderRadius: 25,
+    backgroundColor: '#f0f0f0',
+    padding: 4,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 20,
+  },
+  activeTab: {
+    backgroundColor: 'green',
+  },
+  tabText: {
+    fontSize: 16,
+  },
+  activeTabText: {
+    color: 'white',
   },
   instructions: {
     fontSize: 16,
