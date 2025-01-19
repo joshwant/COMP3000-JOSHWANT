@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { AntDesign, FontAwesome5, FontAwesome6 } from '@expo/vector-icons';
+import { Text, StyleSheet } from 'react-native';
 
 import HomeScreen from '../(tabs)/home';
 import CalendarScreen from '../(tabs)/calendar';
@@ -12,6 +13,12 @@ import { Colors } from '../../constants/Colors';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+
+const CustomHeaderTitle = ({ title }) => (
+  <Text style={styles.headerTitle} numberOfLines={2} ellipsizeMode="tail">
+    {title}
+  </Text>
+);
 
 function HomeStack() {
   return (
@@ -37,7 +44,7 @@ function HomeStack() {
       <Stack.Screen
         name="meal-details"
         component={MealDetailsScreen}
-        options={({ route }) => ({ headerShown: true, title: route.params?.mealName || 'Meal Details'})}
+        options={({ route }) => ({ headerShown: true, headerTitle: () => (<CustomHeaderTitle title={route.params?.mealName || 'Meal Details'} />) })}
       />
     </Stack.Navigator>
   );
@@ -89,3 +96,12 @@ export default function UserStack() {
     </Tab.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    maxWidth: '100%',
+  },
+});
