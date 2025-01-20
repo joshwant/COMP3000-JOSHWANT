@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 //Firebase
 import { db } from '@/config/firebase';
@@ -16,19 +16,54 @@ const WeekDay = ({ date, day, isSelected, onPress }) => (
   </Pressable>
 );
 
-const MealItem = ({ title, type }) => (
+const MealItem = ({ title, type, image, area, category }) => (
   <View style={styles.mealItem}>
+    <Image source={{ uri: image }} style={styles.mealImage} />
     <View style={styles.mealContent}>
       <Text style={styles.mealTitle}>{title}</Text>
-      <Text style={styles.mealInfo}>{type}</Text>
+      <Text style={styles.mealInfo}>{area} • {category}</Text>
     </View>
   </View>
 );
+
+const fetchPreloadedMealDetails = async (preloadedMealId) => {
+    try {
+      const response = await fetch(
+        `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${preloadedMealId}`
+      );
+      const data = await response.json();
+      if (data.meals && data.meals.length > 0) {
+        return data.meals[0];
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching preloaded meal details:', error);
+      return null;
+    }
+};
 
 const DaySection = ({ date, meals, onAddMeal }) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const isToday = date.includes('TODAY');
+  const [mealDetails, setMealDetails] = useState({});
+
+  useEffect(() => {
+      const fetchMealsDetails = async () => {
+        const details = {};
+        for (const meal of meals) {
+          if (!meal.isOwnMeal && meal.preloadedMealId) {
+            const mealData = await fetchPreloadedMealDetails(meal.preloadedMealId);
+            if (mealData) {
+              details[meal.preloadedMealId] = mealData;
+            }
+          }
+        }
+        setMealDetails(details);
+      };
+
+      fetchMealsDetails();
+  }, [meals]);
 
   return (
     <View style={[
@@ -43,13 +78,34 @@ const DaySection = ({ date, meals, onAddMeal }) => {
       </View>
       <View>
         {meals.length > 0 ? (
-          meals.map((meal, index) => (
-            <MealItem
-              key={index}
-              title={meal.preloadedMealId ? `Meal ID: ${meal.preloadedMealId}` : 'Custom Meal'}
-              type={meal.isOwnMeal ? 'Custom' : 'Preloaded'}
-            />
-          ))
+          meals.map((meal, index) => {
+            if (meal.isOwnMeal) {
+              // Custom meal
+              return (
+                <MealItem
+                  key={index}
+                  title={meal.name || 'Custom Meal'}
+                  type="Custom"
+                  image="https://via.placeholder.com/100" // placeholder image for custom meals
+                  area="Custom"
+                  category="Custom"
+                />
+              );
+            } else {
+              // Preloaded meal
+              const mealData = mealDetails[meal.preloadedMealId];
+              return (
+                <MealItem
+                  key={index}
+                  title={mealData?.strMeal || `Meal ID: ${meal.preloadedMealId}`}
+                  type="Preloaded"
+                  image={mealData?.strMealThumb || 'https://placehold.co/400'} //just using a placeholder image i found for custom meal image
+                  area={mealData?.strArea || 'Unknown'}
+                  category={mealData?.strCategory || 'Unknown'}
+                />
+              );
+            }
+          })
         ) : (
           <Text style={styles.noMealsText}>You have not selected any meals yet.</Text>
         )}
@@ -118,7 +174,7 @@ const CalendarPage = () => {
     return `${dayLabel} - ${months[date.getMonth()]} ${date.getDate()}`;
   };
 
-  const generateMealsObject = () => {
+  const generateMealsObject = (meals) => {
     const mealsObj = {};
     weekDays.forEach(({ fullDate }) => {
         const dateKey = formatSectionDate(fullDate);
@@ -127,8 +183,6 @@ const CalendarPage = () => {
       });
     return mealsObj;
   };
-
-  //const meals = generateMealsObject();
 
   //fetching meals from database
   useEffect(() => {
@@ -309,6 +363,12 @@ const styles = StyleSheet.create({
   noMealsText: {
     color: '#666',
     fontStyle: 'italic',
+  },
+  mealImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 10,
   },
 });
 
