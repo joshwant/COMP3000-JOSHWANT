@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 //Firebase
 import { db } from '@/config/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -185,31 +185,38 @@ const CalendarPage = () => {
   };
 
   //fetching meals from database
+  const fetchMeals = async () => {
+    if (!user) return;
+    try {
+      const q = query(
+        collection(db, 'mealPlans'),
+        where('userId', '==', user.uid)
+      );
+      const querySnapshot = await getDocs(q);
+
+      const mealsData = {};
+      querySnapshot.forEach((doc) => {
+        const meal = doc.data();
+        const mealDate = new Date(meal.mealDate).toISOString().split('T')[0]; // Group by date
+
+        if (!mealsData[mealDate]) {
+          mealsData[mealDate] = [];
+        }
+        mealsData[mealDate].push(meal);
+      });
+      setMeals(mealsData);
+    } catch (error) {
+      console.error('Error fetching meals:', error);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+        fetchMeals();
+    }, [user])
+  );
+
   useEffect(() => {
-    const fetchMeals = async () => {
-      if (!user) return;
-      try {
-        const q = query(
-          collection(db, 'mealPlans'),
-          where('userId', '==', user.uid)
-        );
-        const querySnapshot = await getDocs(q);
-
-        const mealsData = {};
-        querySnapshot.forEach((doc) => {
-          const meal = doc.data();
-          const mealDate = new Date(meal.mealDate).toISOString().split('T')[0]; // Group by date
-
-          if (!mealsData[mealDate]) {
-            mealsData[mealDate] = [];
-          }
-          mealsData[mealDate].push(meal);
-        });
-        setMeals(mealsData);
-      } catch (error) {
-        console.error('Error fetching meals:', error);
-      }
-    };
     fetchMeals();
   }, [user]);
 
