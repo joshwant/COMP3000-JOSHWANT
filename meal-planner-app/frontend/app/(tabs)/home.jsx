@@ -5,6 +5,10 @@ import React, { useEffect, useState } from 'react';
 import { AntDesign } from '@expo/vector-icons';
 import logout from '../auth/logout.jsx';
 import MealDetails from '../(tabs)/mealDetails.jsx';
+//Firebase imports
+import { db } from '@/config/firebase';
+import { collection, addDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 const Home = ({navigation}) => {
   const [meals, setMeals] = useState([]);
@@ -24,6 +28,9 @@ const Home = ({navigation}) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  // Initialize auth
+  const auth = getAuth();
+  const user = auth.currentUser;
 
   // Get meal categories
   const fetchCategories = async () => {
@@ -272,6 +279,30 @@ const Home = ({navigation}) => {
     return week;
   };
 
+  const handleAddMealToCalendar = async () => {
+      if (!user || !selectedMeal || !selectedDate) return;
+
+      try {
+        const mealData = {
+          userId: user.uid, // Link the meal to the user
+          isOwnMeal: false,
+          preloadedMealId: selectedMeal.idMeal,
+          customMealId: null,
+          mealDate: selectedDate.toISOString(),
+          createdAt: new Date().toISOString(),
+        };
+
+        // Add the meal to 'mealPlans' collection in Firestore
+        await addDoc(collection(db, 'mealPlans'), mealData);
+
+        console.log('Meal added to calendar:', selectedMeal.strMeal);
+        setModalVisible(false);
+        setSelectedMeal(null);
+      } catch (error) {
+        console.error('Error adding meal to calendar:', error);
+      }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -371,12 +402,7 @@ const Home = ({navigation}) => {
 
             <TouchableOpacity
               style={styles.saveButton}
-              onPress={() => {
-                // need to add functionality
-                console.log('Adding to meal plan:', selectedMeal?.strMeal);
-                setModalVisible(false);
-                setSelectedMeal(null);
-              }}
+              onPress={handleAddMealToCalendar}
             >
               <Text style={styles.saveButtonText}>Add</Text>
             </TouchableOpacity>
