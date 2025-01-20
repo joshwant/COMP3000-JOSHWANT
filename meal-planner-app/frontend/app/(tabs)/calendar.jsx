@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+//Firebase
+import { db } from '@/config/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 const WeekDay = ({ date, day, isSelected, onPress }) => (
   <Pressable
@@ -12,11 +16,11 @@ const WeekDay = ({ date, day, isSelected, onPress }) => (
   </Pressable>
 );
 
-const MealItem = ({ title, duration, type }) => (
+const MealItem = ({ title, type }) => (
   <View style={styles.mealItem}>
     <View style={styles.mealContent}>
       <Text style={styles.mealTitle}>{title}</Text>
-      <Text style={styles.mealInfo}>{duration} • {type}</Text>
+      <Text style={styles.mealInfo}>{type}</Text>
     </View>
   </View>
 );
@@ -40,7 +44,11 @@ const DaySection = ({ date, meals, onAddMeal }) => {
       <View>
         {meals.length > 0 ? (
           meals.map((meal, index) => (
-            <MealItem key={index} {...meal} />
+            <MealItem
+              key={index}
+              title={meal.preloadedMealId ? `Meal ID: ${meal.preloadedMealId}` : 'Custom Meal'}
+              type={meal.isOwnMeal ? 'Custom' : 'Preloaded'}
+            />
           ))
         ) : (
           <Text style={styles.noMealsText}>You have not selected any meals yet.</Text>
@@ -54,6 +62,11 @@ const CalendarPage = () => {
   const navigation = useNavigation();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const scrollViewRef = React.useRef();
+  const [meals, setMeals] = useState({});
+
+  //Firebase authentication
+  const auth = getAuth();
+  const user = auth.currentUser;
 
   // For the top calendar - only shows TODAY
   const getCalendarDayLabel = (date) => {
@@ -108,13 +121,43 @@ const CalendarPage = () => {
   const generateMealsObject = () => {
     const mealsObj = {};
     weekDays.forEach(({ fullDate }) => {
-      const dateKey = formatSectionDate(fullDate);
-      mealsObj[dateKey] = [];
-    });
+        const dateKey = formatSectionDate(fullDate);
+        const dateString = fullDate.toISOString().split('T')[0]; // format the date properly
+        mealsObj[dateKey] = meals[dateString] || []; // show meals from database if available
+      });
     return mealsObj;
   };
 
-  const meals = generateMealsObject();
+  //const meals = generateMealsObject();
+
+  //fetching meals from database
+  useEffect(() => {
+    const fetchMeals = async () => {
+      if (!user) return;
+      try {
+        const q = query(
+          collection(db, 'mealPlans'),
+          where('userId', '==', user.uid)
+        );
+        const querySnapshot = await getDocs(q);
+
+        const mealsData = {};
+        querySnapshot.forEach((doc) => {
+          const meal = doc.data();
+          const mealDate = new Date(meal.mealDate).toISOString().split('T')[0]; // Group by date
+
+          if (!mealsData[mealDate]) {
+            mealsData[mealDate] = [];
+          }
+          mealsData[mealDate].push(meal);
+        });
+        setMeals(mealsData);
+      } catch (error) {
+        console.error('Error fetching meals:', error);
+      }
+    };
+    fetchMeals();
+  }, [user]);
 
   useEffect(() => {
     // Set initial scroll position to todays card
@@ -131,6 +174,13 @@ const CalendarPage = () => {
       }, 100);
     }
   }, []);
+
+  const handleAddMeal = (date) => {
+    //need to add popup here and functionality
+    console.log('Add meal for:', date);
+  };
+
+  const mealsForDisplay = generateMealsObject(meals);
 
   return (
     <View style={styles.container}>
@@ -154,7 +204,7 @@ const CalendarPage = () => {
         ref={scrollViewRef}
         style={styles.mealListContainer}
       >
-        {Object.entries(meals).map(([date, mealList], index) => (
+        {Object.entries(mealsForDisplay).map(([date, mealList], index) => (
           <DaySection
             key={index}
             date={date}
