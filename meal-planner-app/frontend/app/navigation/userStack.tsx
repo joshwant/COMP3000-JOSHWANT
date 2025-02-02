@@ -52,8 +52,20 @@ function HomeStack() {
 
 function CalendarStack() {
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="calendar" component={CalendarScreen}/>
+    <Stack.Navigator
+    screenOptions={{
+            headerStyle: {
+              backgroundColor: 'white',
+              elevation: 0,
+              shadowOpacity: 0,
+            },
+            headerTintColor: 'black',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+            headerTitleAlign: 'center',
+          }}>
+      <Stack.Screen name="calendar" component={CalendarScreen} options={{ headerShown: false }}/>
       <Stack.Screen
         name="meal-details"
         component={MealDetailsScreen}
