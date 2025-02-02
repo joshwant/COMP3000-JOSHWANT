@@ -16,14 +16,16 @@ const WeekDay = ({ date, day, isSelected, onPress }) => (
   </Pressable>
 );
 
-const MealItem = ({ title, type, image, area, category }) => (
-  <View style={styles.mealItem}>
-    <Image source={{ uri: image }} style={styles.mealImage} />
-    <View style={styles.mealContent}>
-      <Text style={styles.mealTitle}>{title}</Text>
-      <Text style={styles.mealInfo}>{area} • {category}</Text>
+const MealItem = ({ title, type, image, area, category, preloadedMealId, navigation }) => (
+  <Pressable onPress={() => navigation.navigate('meal-details', { mealId: preloadedMealId })}>
+    <View style={styles.mealItem}>
+      <Image source={{ uri: image }} style={styles.mealImage} />
+      <View style={styles.mealContent}>
+        <Text style={styles.mealTitle}>{title}</Text>
+        <Text style={styles.mealInfo}>{area} • {category}</Text>
+      </View>
     </View>
-  </View>
+  </Pressable>
 );
 
 const fetchPreloadedMealDetails = async (preloadedMealId) => {
@@ -42,7 +44,7 @@ const fetchPreloadedMealDetails = async (preloadedMealId) => {
     }
 };
 
-const DaySection = ({ date, meals, onAddMeal }) => {
+const DaySection = ({ date, meals, onAddMeal, navigation }) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const isToday = date.includes('TODAY');
@@ -89,6 +91,8 @@ const DaySection = ({ date, meals, onAddMeal }) => {
                   image="https://via.placeholder.com/100" // placeholder image for custom meals
                   area="Custom"
                   category="Custom"
+                  preloadedMealId={meal.preloadedMealId} // pass the preloadedMealId
+                  navigation={navigation} // pass the navigation prop
                 />
               );
             } else {
@@ -99,9 +103,11 @@ const DaySection = ({ date, meals, onAddMeal }) => {
                   key={index}
                   title={mealData?.strMeal || `Meal ID: ${meal.preloadedMealId}`}
                   type="Preloaded"
-                  image={mealData?.strMealThumb || 'https://placehold.co/400'} //just using a placeholder image i found for custom meal image
+                  image={mealData?.strMealThumb || 'https://placehold.co/400'}
                   area={mealData?.strArea || 'Unknown'}
                   category={mealData?.strCategory || 'Unknown'}
+                  preloadedMealId={mealData?.idMeal || meal.preloadedMealId} // pass preloadedMealId for preloaded meal
+                  navigation={navigation} // pass navigation
                 />
               );
             }
@@ -261,16 +267,14 @@ const CalendarPage = () => {
         </View>
       </View>
 
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.mealListContainer}
-      >
+      <ScrollView ref={scrollViewRef} style={styles.mealListContainer}>
         {Object.entries(mealsForDisplay).map(([date, mealList], index) => (
           <DaySection
             key={index}
             date={date}
             meals={mealList}
             onAddMeal={() => handleAddMeal(date)}
+            navigation={navigation}
           />
         ))}
       </ScrollView>

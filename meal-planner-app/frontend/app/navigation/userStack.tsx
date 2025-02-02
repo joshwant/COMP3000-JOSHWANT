@@ -50,6 +50,21 @@ function HomeStack() {
   );
 }
 
+function CalendarStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="calendar" component={CalendarScreen}/>
+      <Stack.Screen
+        name="meal-details"
+        component={MealDetailsScreen}
+        options={({ route }) => ({
+          headerTitle: () => <CustomHeaderTitle title={route.params?.mealName || 'Meal Details'} />,
+        })}
+      />
+    </Stack.Navigator>
+  );
+}
+
 export default function UserStack() {
   return (
     <Tab.Navigator
@@ -90,7 +105,7 @@ export default function UserStack() {
       })}
     >
       <Tab.Screen name="home" component={HomeStack} />
-      <Tab.Screen name="calendar" component={CalendarScreen} />
+      <Tab.Screen name="calendar" component={CalendarStack} />
       <Tab.Screen name="list" component={ListScreen} />
       <Tab.Screen name="priceComparison" component={PriceComparisonScreen} />
     </Tab.Navigator>
