@@ -226,21 +226,18 @@ const CalendarPage = () => {
     fetchMeals();
   }, [user]);
 
-  useEffect(() => {
-    // Set initial scroll position to todays card
+  const handleScrollToToday = () => {
     const todayIndex = weekDays.findIndex(day =>
       day.fullDate.toDateString() === new Date().toDateString()
     );
     if (todayIndex !== -1 && scrollViewRef.current) {
-      // Add delay for the scroll to happen after render to stop any bugs
-      setTimeout(() => {
-        scrollViewRef.current.scrollTo({
-          y: todayIndex * 150,
-          animated: true
-        });
-      }, 100);
+      scrollViewRef.current.scrollTo({ y: todayIndex * 150, animated: true });
     }
-  }, []);
+  };
+
+  useEffect(() => {
+    handleScrollToToday();
+  }, [meals]);
 
   const handleAddMeal = (date) => {
     //need to add popup here and functionality

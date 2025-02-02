@@ -37,7 +37,7 @@ function HomeStack() {
       }}
     >
       <Stack.Screen
-        name="home"
+        name="homepage"
         component={HomeScreen}
         options={{ headerShown: false }}
       />
@@ -65,7 +65,7 @@ function CalendarStack() {
             },
             headerTitleAlign: 'center',
           }}>
-      <Stack.Screen name="calendar" component={CalendarScreen} options={{ headerShown: false }}/>
+      <Stack.Screen name="calendarpage" component={CalendarScreen} options={{ headerShown: false }}/>
       <Stack.Screen
         name="meal-details"
         component={MealDetailsScreen}
@@ -115,6 +115,7 @@ export default function UserStack() {
             height: 60,
         },
       })}
+      lazy
     >
       <Tab.Screen name="home" component={HomeStack} />
       <Tab.Screen name="calendar" component={CalendarStack} />
