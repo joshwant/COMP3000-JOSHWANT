@@ -9,10 +9,10 @@ const ConfirmModal = ({ isVisible, onConfirm, onCancel, title, message }) => (
         <Text style={styles.modalText}>{message}</Text>
         <View style={styles.modalButtons}>
           <Pressable style={styles.confirmButton} onPress={onConfirm}>
-            <Text style={styles.buttonText}>Confirm</Text>
+            <Text style={styles.confirmButtonText}>Confirm</Text>
           </Pressable>
           <Pressable style={styles.cancelButton} onPress={onCancel}>
-            <Text style={styles.buttonText}>Cancel</Text>
+            <Text style={styles.cancelButtonText}>Cancel</Text>
           </Pressable>
         </View>
       </View>
@@ -48,27 +48,26 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     width: '100%',
   },
   confirmButton: {
     backgroundColor: '#ff4444',
-    padding: 10,
+    padding: 12,
     borderRadius: 8,
-    flex: 1,
-    marginRight: 10,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   cancelButton: {
-    backgroundColor: '#007AFF',
-    padding: 10,
-    borderRadius: 8,
-    flex: 1,
+    marginTop: 10,
+    alignItems: 'center',
   },
-  buttonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: 'bold',
+  cancelButtonText: {
+    color: '#007bff',
+    fontSize: 16,
   },
 });
 
