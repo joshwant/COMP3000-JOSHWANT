@@ -44,6 +44,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
+  boldMealName: {
+    fontWeight: 'bold',
+  },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',

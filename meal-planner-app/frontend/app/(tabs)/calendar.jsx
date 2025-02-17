@@ -51,7 +51,7 @@ const fetchPreloadedMealDetails = async (preloadedMealId) => {
     }
 };
 
-const DaySection = ({ date, meals, onAddMeal, navigation, setMealToDelete, setDeleteModalVisible }) => {
+const DaySection = ({ date, meals, onAddMeal, navigation, setMealToDelete, setDeleteModalVisible, setMealName }) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const isToday = date.includes('TODAY');
@@ -117,6 +117,7 @@ const DaySection = ({ date, meals, onAddMeal, navigation, setMealToDelete, setDe
                   navigation={navigation}
                   onRemove={() => {
                     setMealToDelete(meal.id); // Set the meal ID to delete
+                    setMealName(mealData?.strMeal || ''); //Set meal name
                     setDeleteModalVisible(true); // Show confirmation modal
                   }}
                 />
@@ -138,6 +139,7 @@ const CalendarPage = () => {
   const [meals, setMeals] = useState({});
   const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
   const [mealToDelete, setMealToDelete] = useState(null);
+  const [mealName, setMealName] = useState('');
 
   //Firebase authentication
   const auth = getAuth();
@@ -265,6 +267,7 @@ const CalendarPage = () => {
       }
       setDeleteModalVisible(false);
       setMealToDelete(null);
+      setMealName(''); //Clear meal name
     }
   };
 
@@ -298,6 +301,7 @@ const CalendarPage = () => {
             navigation={navigation}
             setMealToDelete={setMealToDelete}
             setDeleteModalVisible={setDeleteModalVisible}
+            setMealName={setMealName}
           />
         ))}
       </ScrollView>
@@ -307,7 +311,12 @@ const CalendarPage = () => {
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteModalVisible(false)}
         title="Remove Meal"
-        message="Are you sure you want to remove this meal from your weekly plan?"
+        message={
+          <>
+            Are you sure you want to remove{' '}
+            <Text style={{ fontWeight: 'bold' }}>{mealName}</Text> from your weekly plan?
+          </>
+        }
       />
     </View>
   );
