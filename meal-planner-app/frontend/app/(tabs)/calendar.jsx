@@ -5,6 +5,10 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { db } from '@/config/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+//Custom Function
+import { deleteMeal } from '../functions/mealFunctions.js';
+//Custom Component
+import ConfirmModal from '../components/ConfirmModal.jsx';
 
 const WeekDay = ({ date, day, isSelected, onPress }) => (
   <Pressable
@@ -16,16 +20,19 @@ const WeekDay = ({ date, day, isSelected, onPress }) => (
   </Pressable>
 );
 
-const MealItem = ({ title, type, image, area, category, preloadedMealId, navigation }) => (
-  <Pressable onPress={() => navigation.navigate('meal-details', { mealId: preloadedMealId })}>
-    <View style={styles.mealItem}>
+const MealItem = ({ title, type, image, area, category, preloadedMealId, navigation, onRemove }) => (
+  <View style={styles.mealItem}>
+    <Pressable onPress={() => navigation.navigate('meal-details', { mealId: preloadedMealId })} style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
       <Image source={{ uri: image }} style={styles.mealImage} />
       <View style={styles.mealContent}>
         <Text style={styles.mealTitle}>{title}</Text>
         <Text style={styles.mealInfo}>{area} • {category}</Text>
       </View>
-    </View>
-  </Pressable>
+    </Pressable>
+    <Pressable onPress={onRemove} style={styles.removeButton}>
+      <Text style={styles.removeButtonText}>-</Text>
+    </Pressable>
+  </View>
 );
 
 const fetchPreloadedMealDetails = async (preloadedMealId) => {
@@ -44,7 +51,7 @@ const fetchPreloadedMealDetails = async (preloadedMealId) => {
     }
 };
 
-const DaySection = ({ date, meals, onAddMeal, navigation }) => {
+const DaySection = ({ date, meals, onAddMeal, navigation, setMealToDelete, setDeleteModalVisible }) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const isToday = date.includes('TODAY');
@@ -106,8 +113,12 @@ const DaySection = ({ date, meals, onAddMeal, navigation }) => {
                   image={mealData?.strMealThumb || 'https://placehold.co/400'}
                   area={mealData?.strArea || 'Unknown'}
                   category={mealData?.strCategory || 'Unknown'}
-                  preloadedMealId={mealData?.idMeal || meal.preloadedMealId} // pass preloadedMealId for preloaded meal
-                  navigation={navigation} // pass navigation
+                  preloadedMealId={mealData?.idMeal || meal.preloadedMealId}
+                  navigation={navigation}
+                  onRemove={() => {
+                    setMealToDelete(meal.id); // Set the meal ID to delete
+                    setDeleteModalVisible(true); // Show confirmation modal
+                  }}
                 />
               );
             }
@@ -125,6 +136,8 @@ const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const scrollViewRef = React.useRef();
   const [meals, setMeals] = useState({});
+  const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [mealToDelete, setMealToDelete] = useState(null);
 
   //Firebase authentication
   const auth = getAuth();
@@ -208,7 +221,7 @@ const CalendarPage = () => {
         if (!mealsData[mealDate]) {
           mealsData[mealDate] = [];
         }
-        mealsData[mealDate].push(meal);
+        mealsData[mealDate].push({ ...meal, id: doc.id }); // Include the document ID
       });
       setMeals(mealsData);
     } catch (error) {
@@ -244,6 +257,17 @@ const CalendarPage = () => {
     console.log('Add meal for:', date);
   };
 
+  const handleConfirmDelete = async () => {
+    if (mealToDelete) {
+      const success = await deleteMeal(mealToDelete);
+      if (success) {
+        fetchMeals(); // Refresh the meal list
+      }
+      setDeleteModalVisible(false);
+      setMealToDelete(null);
+    }
+  };
+
   const mealsForDisplay = generateMealsObject(meals);
 
   return (
@@ -272,9 +296,19 @@ const CalendarPage = () => {
             meals={mealList}
             onAddMeal={() => handleAddMeal(date)}
             navigation={navigation}
+            setMealToDelete={setMealToDelete}
+            setDeleteModalVisible={setDeleteModalVisible}
           />
         ))}
       </ScrollView>
+
+      <ConfirmModal
+        isVisible={isDeleteModalVisible}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteModalVisible(false)}
+        title="Remove Meal"
+        message="Are you sure you want to remove this meal from your weekly plan?"
+      />
     </View>
   );
 };
@@ -378,6 +412,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: 10,
   },
+  removeButton: {
+    padding: 8,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 32,
+    height: 32,
+  },
+  removeButtonText: {
+    color: 'black',
+    fontSize: 26,
+    fontWeight: 'bold',
+  },
+
 });
 
 export default CalendarPage;

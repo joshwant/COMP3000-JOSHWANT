@@ -27,7 +27,7 @@ function HomeStack() {
         headerStyle: {
           backgroundColor: 'white',
           elevation: 0,
-          shadowOpacity: 0,
+          boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
         },
         headerTintColor: 'black',
         headerTitleStyle: {
@@ -57,7 +57,7 @@ function CalendarStack() {
             headerStyle: {
               backgroundColor: 'white',
               elevation: 0,
-              shadowOpacity: 0,
+              boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
             },
             headerTintColor: 'black',
             headerTitleStyle: {
@@ -107,10 +107,7 @@ export default function UserStack() {
             backgroundColor: 'white',
             borderTopWidth: 0,
             elevation: 0,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
+            boxShadow: '0px -2px 4px rgba(0, 0, 0, 0.1)',
             paddingTop: 10,
             height: 60,
         },
