@@ -131,6 +131,7 @@ const styles = StyleSheet.create({
   },
   listItem: {
     padding: 16,
+    backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
