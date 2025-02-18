@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Modal } from 'react-native';
-import { db } from '@/config/firebase';
-import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import { SwipeListView } from 'react-native-swipe-list-view';
+import { fetchShoppingList, addShoppingListItem, deleteShoppingListItem } from '../functions/shoppingFunctions';
 
 const List = () => {
   const [shoppingList, setShoppingList] = useState([]); // Holds shopping list items
@@ -13,64 +13,34 @@ const List = () => {
 
   // Fetch shopping list items from Firestore
   useEffect(() => {
-    const fetchShoppingList = async () => {
-      try {
-        if (!user) {
-          console.error('User is not authenticated.');
-          return;
-        }
-
-        // Query shoppingLists where userId matches the authenticated user
-        const q = query(
-          collection(db, 'shoppingLists'),
-          where('userId', '==', user.uid)
-        );
-        const querySnapshot = await getDocs(q);
-
-        const items = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+    const loadShoppingList = async () => {
+      if (user) {
+        const items = await fetchShoppingList(user.uid);
         setShoppingList(items);
-      } catch (error) {
-          if (error.code === 'permission-denied') {
-            console.error('Permission denied. Check Firestore rules or document fields.');
-          } else {
-            console.error('Error fetching shopping list:', error);
-          }
-        }
+      }
     };
 
-    fetchShoppingList();
+    loadShoppingList();
   }, [user]);
 
-
   // Add a new item to Firestore
-  const addItemToFirestore = async () => {
-    try {
-      if (!user) return;
+  const handleAddItem = async () => {
+    if (!user) return;
+    const addedItem = await addShoppingListItem(newItem, user.uid);
 
-      // Ensure all fields are filled before attempting to write
-      if (!newItem.name || !newItem.quantity || !newItem.size) {
-        console.error("All fields must be filled before adding an item.");
-        return;
-      }
+    if (addedItem) {
+      setShoppingList((prevList) => [...prevList, addedItem]);
+      setNewItem({ name: '', quantity: '', size: '' });
+      setModalVisible(false);
+    }
+  };
 
-      // Add the document to Firestore with the userId field
-      await addDoc(collection(db, 'shoppingLists'), {
-        userId: user.uid, // Include userId to match security rules
-        name: newItem.name,
-        quantity: newItem.quantity,
-        size: newItem.size,
-        createdAt: new Date(),
-      });
+  // Delete an item from Firestore
+  const handleDeleteItem = async (itemId) => {
+    const success = await deleteShoppingListItem(itemId);
 
-      // Refresh UI
-      setShoppingList((prev) => [...prev, { ...newItem, userId: user.uid }]);
-      setNewItem({ name: '', quantity: '', size: '' }); // Reset form
-      setModalVisible(false); // Close modal
-    } catch (error) {
-      console.error('Error adding item:', error);
+    if (success) {
+      setShoppingList((prevList) => prevList.filter((item) => item.id !== itemId));
     }
   };
 
@@ -79,7 +49,7 @@ const List = () => {
       <Text style={styles.title}>Shopping List</Text>
 
       {/* Shopping List */}
-      <FlatList
+      <SwipeListView
         data={shoppingList}
         keyExtractor={(item) => item.id || Math.random().toString()}
         renderItem={({ item }) => (
@@ -89,6 +59,18 @@ const List = () => {
             </Text>
           </View>
         )}
+        renderHiddenItem={({ item }) => (
+          <View style={styles.hiddenItem}>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => handleDeleteItem(item.id)}
+            >
+              <Text style={styles.deleteText}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        rightOpenValue={-75} // how far the item swipes to reveal delete button
+        disableRightSwipe={true}
       />
 
       {/* Add Item Button */}
@@ -120,7 +102,7 @@ const List = () => {
               value={newItem.size}
               onChangeText={(text) => setNewItem((prev) => ({ ...prev, size: text }))}
             />
-            <TouchableOpacity style={styles.saveButton} onPress={addItemToFirestore}>
+            <TouchableOpacity style={styles.saveButton} onPress={handleAddItem}>
               <Text style={styles.saveButtonText}>Add</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
@@ -155,6 +137,7 @@ const styles = StyleSheet.create({
   itemText: {
     fontSize: 16,
   },
+  //Add item:
   addButton: {
     position: 'absolute',
     bottom: 20,
@@ -215,5 +198,23 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     color: '#007bff',
     fontSize: 16,
+  },
+  //Delete item:
+  hiddenItem: {
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    height: '100%',
+    backgroundColor: 'transparent',
+  },
+  deleteButton: {
+    width: 75,
+    height: '100%',
+    backgroundColor: 'red',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
