@@ -1,13 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { fetchShoppingList, addShoppingListItem, deleteShoppingListItem } from '../functions/shoppingFunctions';
+import { Picker } from '@react-native-picker/picker';
+
+const categories = [
+  'Produce',
+  'Meat',
+  'Dairy',
+  'Bakery',
+  'Frozen Foods',
+  'Pantry',
+  'Beverages',
+  'Snacks',
+  'Other',
+];
 
 const List = () => {
   const [shoppingList, setShoppingList] = useState([]); // Holds shopping list items
   const [isModalVisible, setModalVisible] = useState(false); // Modal visibility
-  const [newItem, setNewItem] = useState({ name: '', quantity: '', size: '' }); // New item data
+  const [newItem, setNewItem] = useState({ name: '', quantity: '', size: '', category: 'Other' }); // New item data
   const auth = getAuth();
   const user = auth.currentUser;
 
@@ -30,7 +43,7 @@ const List = () => {
 
     if (addedItem) {
       setShoppingList((prevList) => [...prevList, addedItem]);
-      setNewItem({ name: '', quantity: '', size: '' });
+      setNewItem({ name: '', quantity: '', size: '', category: 'Other' });
       setModalVisible(false);
     }
   };
@@ -44,34 +57,52 @@ const List = () => {
     }
   };
 
+  const groupedShoppingList = shoppingList.reduce((acc, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = [];
+    }
+    acc[item.category].push(item);
+    return acc;
+  }, {});
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Shopping List</Text>
 
-      {/* Shopping List */}
-      <SwipeListView
-        data={shoppingList}
-        keyExtractor={(item) => item.id || Math.random().toString()}
-        renderItem={({ item }) => (
-          <View style={styles.listItem}>
-            <Text style={styles.itemText}>
-              {item.name} - {item.quantity} ({item.size})
-            </Text>
+      {/* Scrollable List */}
+      <ScrollView>
+        {Object.keys(groupedShoppingList).map((category) => (
+          <View key={category}>
+            <View style={styles.categoryHeaderContainer}>
+              <Text style={styles.categoryHeader}>{category}</Text>
+            </View>
+
+            <SwipeListView
+              data={groupedShoppingList[category]}
+              keyExtractor={(item) => item.id || Math.random().toString()}
+              renderItem={({ item }) => (
+                <View style={styles.listItem}>
+                  <Text style={styles.itemText}>
+                    {item.name} - {item.quantity} ({item.size})
+                  </Text>
+                </View>
+              )}
+              renderHiddenItem={({ item }) => (
+                <View style={styles.hiddenItem}>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDeleteItem(item.id)}
+                  >
+                    <Text style={styles.deleteText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              rightOpenValue={-75}
+              disableRightSwipe={true}
+            />
           </View>
-        )}
-        renderHiddenItem={({ item }) => (
-          <View style={styles.hiddenItem}>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleDeleteItem(item.id)}
-            >
-              <Text style={styles.deleteText}>Delete</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        rightOpenValue={-75} // how far the item swipes to reveal delete button
-        disableRightSwipe={true}
-      />
+        ))}
+      </ScrollView>
 
       {/* Add Item Button */}
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
@@ -102,6 +133,15 @@ const List = () => {
               value={newItem.size}
               onChangeText={(text) => setNewItem((prev) => ({ ...prev, size: text }))}
             />
+            <Picker
+              selectedValue={newItem.category}
+              onValueChange={(itemValue) => setNewItem((prev) => ({ ...prev, category: itemValue }))}
+              style={styles.picker}
+            >
+              {categories.map((cat) => (
+                <Picker.Item key={cat} label={cat} value={cat} />
+              ))}
+            </Picker>
             <TouchableOpacity style={styles.saveButton} onPress={handleAddItem}>
               <Text style={styles.saveButtonText}>Add</Text>
             </TouchableOpacity>
@@ -217,5 +257,19 @@ const styles = StyleSheet.create({
   deleteText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  categoryHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'grey',
+    paddingTop: 10,
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    marginBottom: 16,
   },
 });
