@@ -75,7 +75,9 @@ const PriceComparison = () => {
             <Image source={{uri: 'https://www.themealdb.com/images/ingredients/milk.png'}} style={styles.productImage} />
           </View>
         </View>
+      </ScrollView>
 
+      <View style={styles.footer}>
         <View style={styles.totalPriceContainer}>
           <Text style={styles.totalLabel}>Total at Tesco</Text>
           <Text style={styles.totalAmount}>£42.85</Text>
@@ -84,7 +86,7 @@ const PriceComparison = () => {
         <TouchableOpacity style={styles.refreshButton}>
           <Text style={styles.refreshButtonText}>Refresh Price Comparison</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
     </View>
   )
 }
@@ -234,6 +236,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
+  footer: {
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
   totalLabel: {
     fontSize: 16,
     fontWeight: '500',
@@ -247,8 +254,6 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 4,
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 20,
   },
   refreshButtonText: {
     color: 'white',
