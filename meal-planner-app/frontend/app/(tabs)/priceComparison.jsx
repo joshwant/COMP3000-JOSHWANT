@@ -4,24 +4,19 @@ import React from 'react'
 const PriceComparison = () => {
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View>
         <Text style={styles.title}>Price Comparison</Text>
       </View>
 
-      <View style={styles.totalItems}>
-        <Text style={styles.totalItemsLabel}>Total Items</Text>
-        <Text style={styles.totalItemsValue}>12 items</Text>
-      </View>
-
       <View style={styles.sortOptions}>
-        <TouchableOpacity style={styles.sortButton}>
-          <Text style={styles.sortButtonText}>↕ Price</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.sortButton}>
-          <Text style={styles.sortButtonText}>↕ Name</Text>
-        </TouchableOpacity>
+        <View style={styles.totalItems}>
+          <Text style={styles.totalItemsLabel}>Total Items</Text>
+          <Text style={styles.totalItemsValue}>12 items</Text>
+        </View>
         <TouchableOpacity style={styles.moreOptionsButton}>
-          <View style={styles.storeSelector}><Text>Tesco</Text> </View>
+          <View style={styles.storeSelector}>
+            <Text>Tesco</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -99,15 +94,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 16,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
   },
   storeSelector: {
     flexDirection: 'row',
@@ -119,9 +110,6 @@ const styles = StyleSheet.create({
     width: 100,
     justifyContent: 'space-between',
   },
-  totalItems: {
-    marginBottom: 15,
-  },
   totalItemsLabel: {
     fontSize: 14,
     color: '#666',
@@ -132,25 +120,10 @@ const styles = StyleSheet.create({
   },
   sortOptions: {
     flexDirection: 'row',
-    marginBottom: 15,
     alignItems: 'center',
-  },
-  sortButton: {
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 4,
-    padding: 8,
-    marginRight: 10,
-  },
-  sortButtonText: {
-    fontWeight: '500',
   },
   moreOptionsButton: {
     marginLeft: 'auto',
-  },
-  moreOptionsIcon: {
-    fontSize: 20,
-    fontWeight: 'bold',
   },
   scrollContainer: {
     flex: 1,
