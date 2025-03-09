@@ -1,7 +1,18 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
+import { Dropdown } from 'react-native-element-dropdown';
 
 const PriceComparison = () => {
+  const [selectedStore, setSelectedStore] = useState('Tesco'); // Default store
+
+  const storeOptions = [
+    { label: 'Tesco', value: 'Tesco' },
+    { label: "Sainsbury's", value: "Sainsbury's" },
+    { label: 'Aldi', value: 'Aldi' },
+    { label: 'Morrisons', value: 'Morrisons' },
+    { label: 'ASDA', value: 'ASDA' },
+  ];
+
   return (
     <View style={styles.container}>
       <View>
@@ -9,15 +20,20 @@ const PriceComparison = () => {
       </View>
 
       <View style={styles.sortOptions}>
-        <View style={styles.totalItems}>
+        <View>
           <Text style={styles.totalItemsLabel}>Total Items</Text>
           <Text style={styles.totalItemsValue}>12 items</Text>
         </View>
-        <TouchableOpacity style={styles.moreOptionsButton}>
-          <View style={styles.storeSelector}>
-            <Text>Tesco</Text>
-          </View>
-        </TouchableOpacity>
+        <Dropdown
+          style={styles.dropdown}
+          data={storeOptions}
+          labelField="label"
+          valueField="value"
+          value={selectedStore}
+          onChange={item => setSelectedStore(item.value)}
+          containerStyle={styles.dropdownContainer}
+          selectedTextStyle={styles.selectedText}
+        />
       </View>
 
       <ScrollView style={styles.scrollContainer}>
@@ -35,9 +51,6 @@ const PriceComparison = () => {
             <View style={styles.actionButtons}>
               <TouchableOpacity style={styles.swapButton}>
                 <Text style={styles.swapButtonText}>↔ Swap Item</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.searchButton}>
-                <Text style={styles.searchButtonIcon}>🔍</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -61,9 +74,6 @@ const PriceComparison = () => {
               <TouchableOpacity style={styles.swapButton}>
                 <Text style={styles.swapButtonText}>↔ Swap Item</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.searchButton}>
-                <Text style={styles.searchButtonIcon}>🔍</Text>
-              </TouchableOpacity>
             </View>
           </View>
           <View style={styles.itemImage}>
@@ -74,7 +84,7 @@ const PriceComparison = () => {
 
       <View style={styles.footer}>
         <View style={styles.totalPriceContainer}>
-          <Text style={styles.totalLabel}>Total at Tesco</Text>
+          <Text style={styles.totalLabel}>Total at {selectedStore}</Text>
           <Text style={styles.totalAmount}>£42.85</Text>
         </View>
 
@@ -100,16 +110,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  storeSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 4,
-    padding: 8,
-    width: 100,
-    justifyContent: 'space-between',
-  },
   totalItemsLabel: {
     fontSize: 14,
     color: '#666',
@@ -121,17 +121,31 @@ const styles = StyleSheet.create({
   sortOptions: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 15,
   },
-  moreOptionsButton: {
+  dropdown: {
+    width: 120,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: '#fff',
     marginLeft: 'auto',
+  },
+  dropdownContainer: {
+    borderRadius: 4,
+  },
+  selectedText: {
+    fontSize: 14,
   },
   scrollContainer: {
     flex: 1,
   },
   itemContainer: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
     paddingVertical: 15,
   },
   itemDetails: {
@@ -164,31 +178,16 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 10,
   },
-  actionButtons: {
-    flexDirection: 'row',
-  },
   swapButton: {
     backgroundColor: '#f5f5f5',
     padding: 8,
     borderRadius: 4,
     flex: 1,
     alignItems: 'center',
-    marginRight: 8,
   },
   swapButtonText: {
     color: '#333',
     fontSize: 14,
-  },
-  searchButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 4,
-    backgroundColor: '#f5f5f5',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  searchButtonIcon: {
-    fontSize: 16,
   },
   itemImage: {
     width: 70,
