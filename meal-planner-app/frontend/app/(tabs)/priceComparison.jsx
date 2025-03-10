@@ -2,8 +2,16 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'rea
 import React, { useState } from 'react'
 import { Dropdown } from 'react-native-element-dropdown';
 
+import { loadCsvData } from '../helperFunctions/csvHelper';
+
 const PriceComparison = () => {
   const [selectedStore, setSelectedStore] = useState('Tesco'); // Default store
+  const [csvData, setCsvData] = useState([]);
+
+const handleRefresh = async () => {
+  const csvData = await loadCsvData();
+  console.log('📄 CSV Data:', csvData);
+};
 
   const storeOptions = [
     { label: 'Tesco', value: 'Tesco' },
@@ -88,7 +96,7 @@ const PriceComparison = () => {
           <Text style={styles.totalAmount}>£42.85</Text>
         </View>
 
-        <TouchableOpacity style={styles.refreshButton}>
+        <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
           <Text style={styles.refreshButtonText}>Refresh Price Comparison</Text>
         </TouchableOpacity>
       </View>
@@ -222,7 +230,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   refreshButton: {
-    backgroundColor: '#000',
+    backgroundColor: '#007bff',
     padding: 15,
     borderRadius: 4,
     alignItems: 'center',
