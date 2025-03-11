@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { Dropdown } from 'react-native-element-dropdown';
 
@@ -87,50 +87,6 @@ const PriceComparison = () => {
       </View>
 
       <ScrollView style={styles.scrollContainer}>
-        <View style={styles.itemContainer}>
-          <View style={styles.itemDetails}>
-            <Text style={styles.itemName}>Organic Bananas</Text>
-            <Text style={styles.itemNeed}>Need: 6 pieces</Text>
-
-            <View style={styles.productDetails}>
-              <Text style={styles.productName}>Tesco Organic Bananas 6pk</Text>
-              <Text style={styles.productPrice}>£1.85</Text>
-            </View>
-            <Text style={styles.unitPrice}>£0.31/piece</Text>
-
-            <View style={styles.actionButtons}>
-              <TouchableOpacity style={styles.swapButton}>
-                <Text style={styles.swapButtonText}>↔ Swap Item</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.itemImage}>
-            <Image source={{uri: 'https://www.themealdb.com/images/ingredients/banana.png'}} style={styles.productImage} />
-          </View>
-        </View>
-
-        <View style={styles.itemContainer}>
-          <View style={styles.itemDetails}>
-            <Text style={styles.itemName}>Whole Milk</Text>
-            <Text style={styles.itemNeed}>Need: 2 liters</Text>
-
-            <View style={styles.productDetails}>
-              <Text style={styles.productName}>Tesco British Whole Milk 2L</Text>
-              <Text style={styles.productPrice}>£1.95</Text>
-            </View>
-            <Text style={styles.unitPrice}>£0.98/L</Text>
-
-            <View style={styles.actionButtons}>
-              <TouchableOpacity style={styles.swapButton}>
-                <Text style={styles.swapButtonText}>↔ Swap Item</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.itemImage}>
-            <Image source={{uri: 'https://www.themealdb.com/images/ingredients/milk.png'}} style={styles.productImage} />
-          </View>
-        </View>
-
         {comparisonItems.map((item) => (
           <PriceComparisonCard
             key={item.id}
@@ -202,65 +158,6 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-  },
-  itemContainer: {
-    flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-    paddingVertical: 15,
-  },
-  itemDetails: {
-    flex: 1,
-  },
-  itemName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  itemNeed: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 10,
-  },
-  productDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  productName: {
-    fontSize: 14,
-    flex: 1,
-  },
-  productPrice: {
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  unitPrice: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 10,
-  },
-  swapButton: {
-    backgroundColor: '#f5f5f5',
-    padding: 8,
-    borderRadius: 4,
-    flex: 1,
-    alignItems: 'center',
-  },
-  swapButtonText: {
-    color: '#333',
-    fontSize: 14,
-  },
-  itemImage: {
-    width: 70,
-    height: 70,
-    marginLeft: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  productImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 4,
   },
   totalPriceContainer: {
     flexDirection: 'row',
