@@ -1,17 +1,59 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Dropdown } from 'react-native-element-dropdown';
 
 import { loadCsvData } from '../helperFunctions/csvHelper';
+import PriceComparisonCard from '../components/PriceComparisonCard';
 
 const PriceComparison = () => {
   const [selectedStore, setSelectedStore] = useState('Tesco'); // Default store
   const [csvData, setCsvData] = useState([]);
+  const [comparisonItems, setComparisonItems] = useState([]);
 
-const handleRefresh = async () => {
-  const csvData = await loadCsvData();
-  console.log('📄 CSV Data:', csvData);
-};
+  // Dummy shopping list data
+  const dummyShoppingList = [
+    { id: '1', name: 'Butter', quantity: '1 pack' },
+    { id: '2', name: 'Milk', quantity: '2 liters' },
+    { id: '3', name: 'Banana', quantity: '6 pieces' },
+  ];
+
+  // Refresh function
+  const handleRefresh = async () => {
+    // Load CSV data first
+    const loadedCsvData = await loadCsvData();
+    setCsvData(loadedCsvData);
+    console.log('CSV Data loaded:', loadedCsvData);
+
+    const newComparisonItems = dummyShoppingList.map((shopItem) => {
+      // Find a CSV item whose product name contains the shopping list item name
+      const match = loadedCsvData.find((csvItem) =>
+        csvItem["Product Name"].toLowerCase().includes(shopItem.name.toLowerCase())
+      );
+
+      if (match) {
+        return {
+          id: shopItem.id,
+          itemName: shopItem.name,
+          quantity: shopItem.quantity,
+          productName: match["Product Name"],
+          productPrice: match.Price,
+          notFound: false,
+        };
+      } else {
+        return {
+          id: shopItem.id,
+          itemName: shopItem.name,
+          quantity: shopItem.quantity,
+          notFound: true,
+        };
+      }
+    });
+    setComparisonItems(newComparisonItems);
+  };
+
+  useEffect(() => {
+    handleRefresh();
+  }, []);
 
   const storeOptions = [
     { label: 'Tesco', value: 'Tesco' },
@@ -30,7 +72,7 @@ const handleRefresh = async () => {
       <View style={styles.sortOptions}>
         <View>
           <Text style={styles.totalItemsLabel}>Total Items</Text>
-          <Text style={styles.totalItemsValue}>12 items</Text>
+          <Text style={styles.totalItemsValue}>{dummyShoppingList.length} items</Text>
         </View>
         <Dropdown
           style={styles.dropdown}
@@ -88,6 +130,17 @@ const handleRefresh = async () => {
             <Image source={{uri: 'https://www.themealdb.com/images/ingredients/milk.png'}} style={styles.productImage} />
           </View>
         </View>
+
+        {comparisonItems.map((item) => (
+          <PriceComparisonCard
+            key={item.id}
+            itemName={item.itemName}
+            quantity={item.quantity}
+            productName={item.productName}
+            productPrice={item.productPrice}
+            notFound={item.notFound}
+          />
+        ))}
       </ScrollView>
 
       <View style={styles.footer}>

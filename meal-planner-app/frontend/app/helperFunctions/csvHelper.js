@@ -8,11 +8,11 @@ export const loadCsvData = async () => {
 
     if (Platform.OS === 'web') {
       //On Web: Fetch CSV from `public/` folder
-      const response = await fetch('/csvFiles/tesco-test-data.csv');
+      const response = await fetch('/csvFiles/tesco_data_fresh-food.csv');
       csvString = await response.text();
     } else {
       //On Mobile: Use FileSystem to read from bundle
-      const fileUri = FileSystem.bundleDirectory + 'assets/tesco-test-data.csv';
+      const fileUri = FileSystem.bundleDirectory + 'assets/tesco_data_fresh-food.csv';
 
       if (!fileUri) {
         throw new Error('Failed to get the file URI');
