@@ -1,10 +1,8 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { Dropdown } from 'react-native-element-dropdown';
-
 import { loadCsvData } from '../helperFunctions/csvHelper';
 import PriceComparisonCard from '../components/PriceComparisonCard';
-
 import { getAuth } from 'firebase/auth';
 import { fetchShoppingList } from '../functions/shoppingFunctions';
 
@@ -19,13 +17,14 @@ const PriceComparison = () => {
   const user = auth.currentUser;
 
   // Fetch shopping list from Firebase on mount
+  const loadShoppingList = async () => {
+    if (user) {
+      const items = await fetchShoppingList(user.uid);
+      setShoppingList(items);
+    }
+  };
+
   useEffect(() => {
-    const loadShoppingList = async () => {
-      if (user) {
-        const items = await fetchShoppingList(user.uid);
-        setShoppingList(items);
-      }
-    };
     loadShoppingList();
   }, [user]);
 
@@ -64,16 +63,10 @@ const PriceComparison = () => {
   };
 
   useEffect(() => {
+    if (shoppingList.length > 0){
     handleRefresh();
-  }, []);
-
-  const storeOptions = [
-    { label: 'Tesco', value: 'Tesco' },
-    { label: "Sainsbury's", value: "Sainsbury's" },
-    { label: 'Aldi', value: 'Aldi' },
-    { label: 'Morrisons', value: 'Morrisons' },
-    { label: 'ASDA', value: 'ASDA' },
-  ];
+    }
+  }, [shoppingList]);
 
   const totalPrice = comparisonItems.reduce((sum, item) => {
     if (!item.notFound && item.productPrice) {
@@ -83,6 +76,14 @@ const PriceComparison = () => {
     }
     return sum;
   }, 0).toFixed(2);
+
+  const storeOptions = [
+    { label: 'Tesco', value: 'Tesco' },
+    { label: "Sainsbury's", value: "Sainsbury's" },
+    { label: 'Aldi', value: 'Aldi' },
+    { label: 'Morrisons', value: 'Morrisons' },
+    { label: 'ASDA', value: 'ASDA' },
+  ];
 
   return (
     <View style={styles.container}>
