@@ -63,6 +63,15 @@ const PriceComparison = () => {
     { label: 'ASDA', value: 'ASDA' },
   ];
 
+  const totalPrice = comparisonItems.reduce((sum, item) => {
+    if (!item.notFound && item.productPrice) {
+      // Remove the "£" symbol and convert to float
+      const price = parseFloat(item.productPrice.replace('£', '')) || 0;
+      return sum + price;
+    }
+    return sum;
+  }, 0).toFixed(2);
+
   return (
     <View style={styles.container}>
       <View>
@@ -102,7 +111,7 @@ const PriceComparison = () => {
       <View style={styles.footer}>
         <View style={styles.totalPriceContainer}>
           <Text style={styles.totalLabel}>Total at {selectedStore}</Text>
-          <Text style={styles.totalAmount}>£42.85</Text>
+          <Text style={styles.totalAmount}>£{totalPrice}</Text>
         </View>
 
         <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
