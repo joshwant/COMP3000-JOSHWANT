@@ -5,17 +5,29 @@ import { Dropdown } from 'react-native-element-dropdown';
 import { loadCsvData } from '../helperFunctions/csvHelper';
 import PriceComparisonCard from '../components/PriceComparisonCard';
 
+import { getAuth } from 'firebase/auth';
+import { fetchShoppingList } from '../functions/shoppingFunctions';
+
 const PriceComparison = () => {
   const [selectedStore, setSelectedStore] = useState('Tesco'); // Default store
   const [csvData, setCsvData] = useState([]);
   const [comparisonItems, setComparisonItems] = useState([]);
+  const [shoppingList, setShoppingList] = useState([]);
 
-  // Dummy shopping list data
-  const dummyShoppingList = [
-    { id: '1', name: 'Butter', quantity: '1 pack' },
-    { id: '2', name: 'Milk', quantity: '2 liters' },
-    { id: '3', name: 'Banana', quantity: '6 pieces' },
-  ];
+  //Firebase Auth
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  // Fetch shopping list from Firebase on mount
+  useEffect(() => {
+    const loadShoppingList = async () => {
+      if (user) {
+        const items = await fetchShoppingList(user.uid);
+        setShoppingList(items);
+      }
+    };
+    loadShoppingList();
+  }, [user]);
 
   // Refresh function
   const handleRefresh = async () => {
@@ -24,7 +36,7 @@ const PriceComparison = () => {
     setCsvData(loadedCsvData);
     console.log('CSV Data loaded:', loadedCsvData);
 
-    const newComparisonItems = dummyShoppingList.map((shopItem) => {
+    const newComparisonItems = shoppingList.map((shopItem) => {
       // Find a CSV item whose product name contains the shopping list item name
       const match = loadedCsvData.find((csvItem) =>
         csvItem["Product Name"].toLowerCase().includes(shopItem.name.toLowerCase())
@@ -81,7 +93,7 @@ const PriceComparison = () => {
       <View style={styles.sortOptions}>
         <View>
           <Text style={styles.totalItemsLabel}>Total Items</Text>
-          <Text style={styles.totalItemsValue}>{dummyShoppingList.length} items</Text>
+          <Text style={styles.totalItemsValue}>{shoppingList.length} items</Text>
         </View>
         <Dropdown
           style={styles.dropdown}
