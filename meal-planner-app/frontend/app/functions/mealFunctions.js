@@ -29,3 +29,5 @@ export const fetchMealDetails = async (preloadedMealId) => {
     return null;
   }
 };
+
+export default { deleteMeal, fetchMealDetails };

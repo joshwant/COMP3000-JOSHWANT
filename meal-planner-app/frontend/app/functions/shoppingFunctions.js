@@ -49,3 +49,5 @@ export const deleteShoppingListItem = async (itemId) => {
     return false;
   }
 };
+
+export default { fetchShoppingList, addShoppingListItem, deleteShoppingListItem };

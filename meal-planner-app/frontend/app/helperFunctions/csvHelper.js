@@ -31,3 +31,5 @@ export const loadCsvData = async () => {
     return [];
   }
 };
+
+export default { loadCsvData };
