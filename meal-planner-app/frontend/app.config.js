@@ -18,6 +18,7 @@ export default {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff",
       },
+      package: "com.anonymous.frontend"
     },
     web: {
       bundler: "metro",
