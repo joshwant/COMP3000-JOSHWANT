@@ -58,16 +58,13 @@ const List = () => {
   };
 
   // Convert shoppingList into sections
-  const sections = Object.keys(
+  const sections = Object.entries(
     shoppingList.reduce((acc, item) => {
       if (!acc[item.category]) acc[item.category] = [];
       acc[item.category].push(item);
       return acc;
     }, {})
-  ).map((category) => ({
-    title: category,
-    data: shoppingList.filter((item) => item.category === category),
-  }));
+  ).map(([category, data]) => ({ title: category, data }));
 
   return (
     <View style={styles.container}>
@@ -81,7 +78,7 @@ const List = () => {
         )}
         renderItem={({ item }) => (
           <SwipeListView
-            data={[item]} // Single item inside SwipeListView to avoid nesting issues
+            data={[item]}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View style={styles.listItem}>

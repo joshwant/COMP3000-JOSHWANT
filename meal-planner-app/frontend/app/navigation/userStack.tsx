@@ -34,6 +34,8 @@ function HomeStack() {
           fontWeight: 'bold',
         },
         headerTitleAlign: 'center',
+        headerBackTitleVisible: false,
+        headerBackTitle: '',
       }}
     >
       <Stack.Screen
@@ -64,6 +66,8 @@ function CalendarStack() {
               fontWeight: 'bold',
             },
             headerTitleAlign: 'center',
+            headerBackTitleVisible: false,
+            headerBackTitle: '',
           }}>
       <Stack.Screen name="calendarpage" component={CalendarScreen} options={{ headerShown: false }}/>
       <Stack.Screen

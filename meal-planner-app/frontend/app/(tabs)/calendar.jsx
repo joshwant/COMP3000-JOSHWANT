@@ -346,7 +346,8 @@ const styles = StyleSheet.create({
   },
   weekDay: {
     alignItems: 'center',
-    padding: 10,
+    padding: 12,
+    paddingHorizontal: 4,
     flex: 1,
   },
   selectedWeekDay: {
