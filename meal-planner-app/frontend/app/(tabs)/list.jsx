@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Modal, SectionList } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { fetchShoppingList, addShoppingListItem, deleteShoppingListItem } from '../functions/shoppingFunctions';
@@ -57,52 +57,55 @@ const List = () => {
     }
   };
 
-  const groupedShoppingList = shoppingList.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = [];
-    }
-    acc[item.category].push(item);
-    return acc;
-  }, {});
+  // Convert shoppingList into sections
+  const sections = Object.keys(
+    shoppingList.reduce((acc, item) => {
+      if (!acc[item.category]) acc[item.category] = [];
+      acc[item.category].push(item);
+      return acc;
+    }, {})
+  ).map((category) => ({
+    title: category,
+    data: shoppingList.filter((item) => item.category === category),
+  }));
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Shopping List</Text>
 
-      {/* Scrollable List */}
-      <ScrollView>
-        {Object.keys(groupedShoppingList).map((category) => (
-          <View key={category}>
-            <View style={styles.categoryHeaderContainer}>
-              <Text style={styles.categoryHeader}>{category}</Text>
-            </View>
-
-            <SwipeListView
-              data={groupedShoppingList[category]}
-              keyExtractor={(item) => item.id || Math.random().toString()}
-              renderItem={({ item }) => (
-                <View style={styles.listItem}>
-                  <Text style={styles.itemText}>
-                    {item.name} - {item.quantity} ({item.size})
-                  </Text>
-                </View>
-              )}
-              renderHiddenItem={({ item }) => (
-                <View style={styles.hiddenItem}>
-                  <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => handleDeleteItem(item.id)}
-                  >
-                    <Text style={styles.deleteText}>Delete</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              rightOpenValue={-75}
-              disableRightSwipe={true}
-            />
-          </View>
-        ))}
-      </ScrollView>
+      <SectionList
+        sections={sections}
+        keyExtractor={(item) => item.id}
+        renderSectionHeader={({ section: { title } }) => (
+          <Text style={styles.categoryHeader}>{title}</Text>
+        )}
+        renderItem={({ item }) => (
+          <SwipeListView
+            data={[item]} // Single item inside SwipeListView to avoid nesting issues
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.listItem}>
+                <Text style={styles.itemText}>
+                  {item.name} - {item.quantity} ({item.size})
+                </Text>
+              </View>
+            )}
+            renderHiddenItem={({ item }) => (
+              <View style={styles.hiddenItem}>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDeleteItem(item.id)}
+                >
+                  <Text style={styles.deleteText}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            rightOpenValue={-75}
+            disableRightSwipe={true}
+          />
+        )}
+        stickySectionHeadersEnabled={false}
+      />
 
       {/* Add Item Button */}
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
