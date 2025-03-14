@@ -4,6 +4,7 @@ import { getAuth } from 'firebase/auth';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { fetchShoppingList, addShoppingListItem, deleteShoppingListItem } from '../functions/shoppingFunctions';
 import { Picker } from '@react-native-picker/picker';
+import { Dropdown } from 'react-native-element-dropdown';
 
 const categories = [
   'Produce',
@@ -110,40 +111,51 @@ const List = () => {
       </TouchableOpacity>
 
       {/* Add Item Modal */}
-      <Modal visible={isModalVisible} transparent={true}>
+      <Modal visible={isModalVisible} transparent={true} animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add Item</Text>
+
             <TextInput
+              style={styles.input}
               placeholder="Name (e.g., Mince)"
+              placeholderTextColor="gray"
               value={newItem.name}
               onChangeText={(text) => setNewItem((prev) => ({ ...prev, name: text }))}
             />
+
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: 'black' }]}
               placeholder="Quantity (e.g., 2)"
+              placeholderTextColor="gray"
               keyboardType="numeric"
               value={newItem.quantity}
               onChangeText={(text) => setNewItem((prev) => ({ ...prev, quantity: text }))}
             />
+
             <TextInput
               style={styles.input}
               placeholder="Size (e.g., 500g)"
+              placeholderTextColor="gray"
               value={newItem.size}
               onChangeText={(text) => setNewItem((prev) => ({ ...prev, size: text }))}
             />
-            <Picker
-              selectedValue={newItem.category}
-              onValueChange={(itemValue) => setNewItem((prev) => ({ ...prev, category: itemValue }))}
-              style={styles.picker}
-            >
-              {categories.map((cat) => (
-                <Picker.Item key={cat} label={<Text>{cat}</Text>} value={cat} />
-              ))}
-            </Picker>
+
+            <Dropdown
+              style={styles.dropdown}
+              data={categories.map((cat) => ({ label: cat, value: cat }))}
+              labelField="label"
+              valueField="value"
+              value={newItem.category}
+              onChange={(item) => setNewItem((prev) => ({ ...prev, category: item.value }))}
+              containerStyle={styles.dropdownContainer}
+              selectedTextStyle={styles.selectedText}
+            />
+
             <TouchableOpacity style={styles.saveButton} onPress={handleAddItem}>
               <Text style={styles.saveButtonText}>Add</Text>
             </TouchableOpacity>
+
             <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
@@ -201,30 +213,50 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    width: '80%',
+    width: '85%',
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 8,
+    elevation: 5,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 15,
     textAlign: 'center',
   },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
-    padding: 10,
-    marginBottom: 16,
+    padding: 12,
+    marginBottom: 12,
     fontSize: 16,
+    backgroundColor: 'white',
+  },
+  dropdown: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: '#fff',
+    marginBottom: 12,
+  },
+  dropdownContainer: {
+    borderRadius: 8,
+  },
+  selectedText: {
+    fontSize: 16,
+    color: 'black',
   },
   saveButton: {
     backgroundColor: '#007bff',
-    padding: 12,
+    padding: 14,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 10,
   },
   saveButtonText: {
     color: 'white',
@@ -238,6 +270,7 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     color: '#007bff',
     fontSize: 16,
+    fontWeight: 'bold',
   },
   //Delete item:
   hiddenItem: {
@@ -262,13 +295,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'grey',
     paddingTop: 10,
-  },
-  picker: {
-    height: 50,
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    marginBottom: 16,
   },
 });
