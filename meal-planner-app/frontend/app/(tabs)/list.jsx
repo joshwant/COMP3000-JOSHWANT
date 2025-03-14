@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
-    backgroundColor: '#007bff',
+    backgroundColor: '#00B21E',
     width: 50,
     height: 50,
     borderRadius: 25,
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   saveButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#00B21E',
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#007bff',
+    color: '#00B21E',
     fontSize: 16,
     fontWeight: 'bold',
   },

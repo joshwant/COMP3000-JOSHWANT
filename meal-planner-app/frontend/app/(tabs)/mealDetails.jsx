@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   activeTab: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#00B21E',
   },
   tabText: {
     fontSize: 16,

@@ -77,7 +77,7 @@ const DaySection = ({ date, meals, onAddMeal, navigation, setMealToDelete, setDe
   return (
     <View style={[
       styles.daySection,
-      isToday && { backgroundColor: 'rgba(0, 122, 255, 0.1)' }
+      isToday && { backgroundColor: 'rgba(0, 178, 30, 0.1)' }
     ]}>
       <View style={styles.daySectionHeader}>
         <Text style={styles.daySectionTitle}>{date}</Text>
@@ -352,8 +352,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   selectedWeekDay: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#00B21E',
     borderRadius: 8,
+  },
+  selectedWeekDayText: {
+    color: 'white',
   },
   weekDayText: {
     fontSize: 12,
@@ -364,9 +367,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 4,
     color: '#000',
-  },
-  selectedWeekDayText: {
-    color: 'white',
   },
   mealListContainer: {
     flex: 1,
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
   },
   plusButton: {
     fontSize: 24,
-    color: '#007AFF',
+    color: '#00B21E',
     fontWeight: '600',
   },
   mealItem: {

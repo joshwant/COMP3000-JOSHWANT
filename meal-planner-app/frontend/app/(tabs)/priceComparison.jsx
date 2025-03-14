@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   dropdown: {
-    width: 120,
+    width: 140,
     borderWidth: 1,
     borderColor: '#e0e0e0',
     borderRadius: 4,
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   refreshButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#00B21E',
     padding: 15,
     borderRadius: 4,
     alignItems: 'center',

@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
     height: 50,
   },
   categoryButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#00B21E',
     borderRadius: 12,
     paddingVertical: 8,
     paddingHorizontal: 18,
@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   selectedDay: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#00B21E',
     color: 'white',
   },
   dayText: {
@@ -595,7 +595,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   saveButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#00B21E',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -610,7 +610,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#007bff',
+    color: '#00B21E',
     fontSize: 16,
   },
   imageContainer: {
@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: '#007bff',
+    backgroundColor: '#00B21E',
     width: 32,
     height: 32,
     borderRadius: 16,
