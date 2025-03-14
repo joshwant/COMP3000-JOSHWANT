@@ -312,10 +312,11 @@ const CalendarPage = () => {
         onCancel={() => setDeleteModalVisible(false)}
         title="Remove Meal"
         message={
-          <>
+          <Text>
             Are you sure you want to remove{' '}
-            <Text style={{ fontWeight: 'bold' }}>{mealName}</Text> from your weekly plan?
-          </>
+            <Text style={{ fontWeight: 'bold' }}>{mealName}</Text>
+            {' '}from your weekly plan?
+          </Text>
         }
       />
     </View>

@@ -33,7 +33,7 @@ const PriceComparison = () => {
     // Load CSV data first
     const loadedCsvData = await loadCsvData();
     setCsvData(loadedCsvData);
-    console.log('CSV Data loaded:', loadedCsvData);
+//     console.log('CSV Data loaded:', loadedCsvData);
 
     const newComparisonItems = shoppingList.map((shopItem) => {
       // Find a CSV item whose product name contains the shopping list item name

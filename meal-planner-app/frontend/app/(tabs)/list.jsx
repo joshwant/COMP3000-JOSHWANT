@@ -115,7 +115,6 @@ const List = () => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add Item</Text>
             <TextInput
-              style={styles.input}
               placeholder="Name (e.g., Mince)"
               value={newItem.name}
               onChangeText={(text) => setNewItem((prev) => ({ ...prev, name: text }))}
@@ -139,7 +138,7 @@ const List = () => {
               style={styles.picker}
             >
               {categories.map((cat) => (
-                <Picker.Item key={cat} label={cat} value={cat} />
+                <Picker.Item key={cat} label={<Text>{cat}</Text>} value={cat} />
               ))}
             </Picker>
             <TouchableOpacity style={styles.saveButton} onPress={handleAddItem}>

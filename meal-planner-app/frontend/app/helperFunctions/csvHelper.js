@@ -29,7 +29,7 @@ export const loadCsvData = async () => {
     // Parse the CSV data using PapaParse
     const results = Papa.parse(csvString, { header: true });
 
-    console.log('✅ Parsed CSV Data:', results.data);
+    console.log('✅ Parsed CSV Data');
     return results.data;
   } catch (error) {
     console.error('❌ Error loading CSV:', error);
