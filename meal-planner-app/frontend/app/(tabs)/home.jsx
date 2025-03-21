@@ -319,6 +319,7 @@ const Home = ({navigation}) => {
         <TextInput
           style={styles.searchInput}
           placeholder="Search meals..."
+          placeholderTextColor="gray"
           value={searchQuery}
           onChangeText={handleSearch}
         />
