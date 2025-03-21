@@ -1,14 +1,14 @@
+require('dotenv').config({ path: '../.env' });
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const mongoose = require('mongoose');
-require('dotenv').config();
 
 puppeteer.use(StealthPlugin());
 
 (async () => {
   console.log("🚀 Starting Sainsbury's Scraper...");
 
-  const mongoURI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_CLUSTER}/${process.env.MONGO_DB_SAINSBURYS}?${process.env.MONGO_OPTIONS}`;
+  const mongoURI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_CLUSTER}/${process.env.MONGO_DB_SAINSBURYS}?retryWrites=true&w=majority`;
 
   await mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log("✅ Connected to MongoDB"))

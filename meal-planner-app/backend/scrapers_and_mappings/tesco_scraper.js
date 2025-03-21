@@ -1,15 +1,15 @@
+require('dotenv').config({ path: '../.env' });
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const mongoose = require('mongoose');
 const fs = require('fs');
-require('dotenv').config();
 
 puppeteer.use(StealthPlugin());
 
 (async () => {
   console.log("🚀 Starting Tesco Scraper...");
 
-  const mongoURI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_CLUSTER}/${process.env.MONGO_DB_TESCO}?${process.env.MONGO_OPTIONS}`;
+  const mongoURI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_CLUSTER}/${process.env.MONGO_DB_TESCO}?retryWrites=true&w=majority`;
 
   // Connect to MongoDB using Mongoose
   await mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
