@@ -23,6 +23,8 @@ mongoose.connect(mongoURI).then(async () => {
     sainsburys_price: String,
     tesco_quantity: Number,
     sainsburys_quantity: Number,
+    tesco_fat_percentage: Number,
+    sainsburys_fat_percentage: Number,
     confidence: Number
   });
 
@@ -43,13 +45,20 @@ mongoose.connect(mongoURI).then(async () => {
     return { value, unit: unit === 'kg' ? 'g' : unit }; // Standardize units
   };
 
-  // Normalization function with quantity handling
+  // Extract fat percentage from product name (e.g. "20% Fat" → "20")
+  const extractFatPercentage = (name) => {
+    const match = name.match(/(\d+)%\s*fat/i);
+    return match ? parseInt(match[1]) : null;
+  };
+
+  // Normalization function with quantity + fat % handling
   const normalizeName = (name) => {
     return name
       .toLowerCase()
       .replace(/tesco|sainsbury's|asda|aldi|morrisons|pack| x\d+/gi, '') // Remove brands & pack sizes
+      .replace(/\d+%\s*fat/gi, '') // Remove fat percentage
       .replace(/[^a-z0-9\s]/gi, '')
-      .replace(/(\d+)\s*(g|kg|ml|l)/gi, '') // Remove quantities after extraction
+      .replace(/(\d+)\s*(g|kg|ml|l)/gi, '') // Remove quantities
       .replace(/\s+/g, ' ')
       .trim();
   };
@@ -63,26 +72,35 @@ mongoose.connect(mongoURI).then(async () => {
     return difference <= maxDifference;
   };
 
+  // Compare fat percentages with tolerance (default 5%)
+  const areFatPercentagesSimilar = (fat1, fat2, maxDifference = 0.05) => {
+    if (fat1 === null || fat2 === null) return true; // Allow matches if either has no fat percentage
+    const difference = Math.abs(fat1 - fat2) / Math.max(fat1, fat2);
+    return difference <= maxDifference;
+  };
+
   // Fetch products (testing with 1000 items)
-  const tescoProducts = await tescoDB.collection('products').find().limit(1000).toArray();
-  const sainsburysProducts = await sainsburysDB.collection('products').find().limit(1000).toArray();
+  const tescoProducts = await tescoDB.collection('products').find().limit(100).toArray();
+  const sainsburysProducts = await sainsburysDB.collection('products').find().limit(100).toArray();
 
   console.log(`🔍 Found ${tescoProducts.length} Tesco products and ${sainsburysProducts.length} Sainsbury's products`);
 
-  // Preprocess products with quantities
+  // Preprocess products with quantities + fat %
   const processedTesco = tescoProducts.map(p => ({
     ...p,
     normalized: normalizeName(p.name),
-    quantity: extractQuantity(p.name)
+    quantity: extractQuantity(p.name),
+    fat_percentage: extractFatPercentage(p.name)
   }));
 
   const processedSainsburys = sainsburysProducts.map(p => ({
     ...p,
     normalized: normalizeName(p.name),
-    quantity: extractQuantity(p.name)
+    quantity: extractQuantity(p.name),
+    fat_percentage: extractFatPercentage(p.name)
   }));
 
-  // Fuzzy matching with quantity checks
+  // Fuzzy matching with quantity + fat % checks
   const matches = [];
   for (const tescoItem of processedTesco) {
     const sainsburysNames = processedSainsburys.map(p => p.normalized);
@@ -92,7 +110,7 @@ mongoose.connect(mongoURI).then(async () => {
       const bestMatch = processedSainsburys[similarityResult.bestMatchIndex];
 
       // Quantity similarity check
-      if (areQuantitiesSimilar(tescoItem.quantity, bestMatch.quantity)) {
+      if (areQuantitiesSimilar(tescoItem.quantity, bestMatch.quantity) && areFatPercentagesSimilar(tescoItem.fat_percentage, bestMatch.fat_percent)) {
         matches.push({
           generic_name: tescoItem.normalized,
           tesco_name: tescoItem.name,
@@ -101,6 +119,8 @@ mongoose.connect(mongoURI).then(async () => {
           sainsburys_price: bestMatch.price,
           tesco_quantity: tescoItem.quantity?.value || null,
           sainsburys_quantity: bestMatch.quantity?.value || null,
+          tesco_fat_percentage: tescoItem.fat_percentage,
+          sainsburys_fat_percentage: bestMatch.fat_percentage,
           confidence: similarityResult.bestMatch.rating
         });
       }
