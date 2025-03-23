@@ -32,17 +32,22 @@ mongoose.connect(mongoURI).then(async () => {
 
   // Extract quantity from product name (e.g. "250g" → 250)
   const extractQuantity = (name) => {
-    const matches = name.match(/(\d+)\s*(g|kg|ml|l)/i);
+    const matches = name.match(/(\d+)\s*(g|kg|ml|l|pints?)/i);
     if (!matches) return null;
 
     let value = parseInt(matches[1]);
-    const unit = matches[2].toLowerCase();
+    let unit = matches[2].toLowerCase();
 
     // Convert kg to grams + litres to ml for easier comparison
-    if (unit === 'kg') value *= 1000;
-    if (unit === 'l') value *= 1000;
+    if (unit === 'kg') {
+      value *= 1000;
+      unit = 'g';
+    } else if (unit === 'l' || unit === 'pints') {
+      value *= unit === 'pints' ? 568 : 1000; // 1 pint ≈ 568ml
+      unit = 'ml';
+    }
 
-    return { value, unit: unit === 'kg' ? 'g' : unit }; // Standardize units
+    return { value, unit};
   };
 
   // Extract fat percentage from product name (e.g. "20% Fat" → "20")
@@ -51,14 +56,21 @@ mongoose.connect(mongoURI).then(async () => {
     return match ? parseInt(match[1]) : null;
   };
 
-  // Normalization function with quantity + fat % handling
+  // Normalization function to remove brands, modifiers, and packaging terms
   const normalizeName = (name) => {
     return name
       .toLowerCase()
-      .replace(/tesco|sainsbury's|asda|aldi|morrisons|pack| x\d+/gi, '') // Remove brands & pack sizes
-      .replace(/\d+%\s*fat/gi, '') // Remove fat percentage
+      // Remove brands and proprietary terms
+      .replace(/tesco|sainsbury's|finest|taste the difference|so organic|msc|asc|stamford street co\./gi, '')
+      // Remove preparation styles and packaging terms
+      .replace(/\b(pack|jar|rashers|fillets|boil in the bag|ready to eat|skin on|boneless|smoked|style)\b/gi, '')
+      // Handle synonyms
+      .replace(/\b(flavoured|flavor)\b/gi, 'flavour')
+      .replace(/\b(with|&)\b/gi, '')
+      // Remove quantity mentions (handled separately)
+      .replace(/(\d+)\s*(g|kg|ml|l|pints?)\b/gi, '')
+      // Remove special characters
       .replace(/[^a-z0-9\s]/gi, '')
-      .replace(/(\d+)\s*(g|kg|ml|l)/gi, '') // Remove quantities
       .replace(/\s+/g, ' ')
       .trim();
   };
@@ -80,8 +92,8 @@ mongoose.connect(mongoURI).then(async () => {
   };
 
   // Fetch products (testing with 1000 items)
-  const tescoProducts = await tescoDB.collection('products').find().limit(100).toArray();
-  const sainsburysProducts = await sainsburysDB.collection('products').find().limit(100).toArray();
+  const tescoProducts = await tescoDB.collection('products').find().limit(2000).toArray();
+  const sainsburysProducts = await sainsburysDB.collection('products').find().limit(2000).toArray();
 
   console.log(`🔍 Found ${tescoProducts.length} Tesco products and ${sainsburysProducts.length} Sainsbury's products`);
 
@@ -120,12 +132,49 @@ mongoose.connect(mongoURI).then(async () => {
           tesco_quantity: tescoItem.quantity?.value || null,
           sainsburys_quantity: bestMatch.quantity?.value || null,
           tesco_fat_percentage: tescoItem.fat_percentage,
-          sainsburys_fat_percentage: bestMatch.fat_percentage,
           confidence: similarityResult.bestMatch.rating
         });
       }
     }
   }
+
+  // Get 10 random unmatched Tesco and Sainsbury's products for analysis
+  const getRandomUnmatchedItems = (allItems, matchedNames, sampleSize = 10) => {
+    const unmatched = allItems.filter(item => !matchedNames.includes(item.name));
+    return unmatched.sort(() => 0.5 - Math.random()).slice(0, sampleSize);
+  };
+
+  // Get matched product names
+  const matchedTescoNames = matches.map(m => m.tesco_name);
+  const matchedSainsburysNames = matches.map(m => m.sainsburys_name);
+
+  // Get random samples
+  const unmatchedTescoSample = getRandomUnmatchedItems(processedTesco, matchedTescoNames);
+  const unmatchedSainsburysSample = getRandomUnmatchedItems(processedSainsburys, matchedSainsburysNames);
+
+  // Log results with formatting
+  console.log('\n=== UNMATCHED ITEM ANALYSIS ===');
+  console.log('\n💔 Example Tesco Items Needing Matching:');
+  unmatchedTescoSample.forEach((item, i) => {
+    console.log(`${i + 1}. ${item.name}
+     - Quantity: ${item.quantity?.value || 'N/A'}${item.quantity?.unit || ''}
+     - Fat%: ${item.fat_percentage || 'N/A'}
+     - Normalized: "${item.normalized}"`);
+  });
+
+  console.log('\n💔 Example Sainsbury\'s Items Needing Matching:');
+  unmatchedSainsburysSample.forEach((item, i) => {
+    console.log(`${i + 1}. ${item.name}
+     - Quantity: ${item.quantity?.value || 'N/A'}${item.quantity?.unit || ''}
+     - Fat%: ${item.fat_percentage || 'N/A'}
+     - Normalized: "${item.normalized}"`);
+  });
+
+  console.log('\n🔧 Suggested Next Steps:');
+  console.log('- Check why normalization might differ for similar items');
+  console.log('- Add custom matching rules for common patterns');
+  console.log('- Test Mistral AI matching on these examples');
+  //end of random unmatched items
 
   // Save to main database
   await ProductMapping.deleteMany({});
