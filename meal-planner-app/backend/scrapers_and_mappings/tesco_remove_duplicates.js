@@ -2,9 +2,9 @@ require('dotenv').config({ path: '../.env' });
 const mongoose = require('mongoose');
 
 (async () => {
-  console.log("🚀 Starting Sainsbury's duplicate count script...");
+  console.log("🚀 Starting Tesco duplicate count script...");
 
-  const mongoURI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_CLUSTER}/${process.env.MONGO_DB_SAINSBURYS}?retryWrites=true&w=majority`;
+  const mongoURI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_CLUSTER}/${process.env.MONGO_DB_TESCO}?retryWrites=true&w=majority`;
 
   await mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log("✅ Connected to MongoDB"))
