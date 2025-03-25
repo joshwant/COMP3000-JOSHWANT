@@ -91,9 +91,9 @@ mongoose.connect(mongoURI).then(async () => {
     return difference <= maxDifference;
   };
 
-  // Fetch products (testing with 1000 items)
-  const tescoProducts = await tescoDB.collection('products').find().limit(2000).toArray();
-  const sainsburysProducts = await sainsburysDB.collection('products').find().limit(2000).toArray();
+  // Fetch products (testing with 2000 items) .find().limit(2000)
+  const tescoProducts = await tescoDB.collection('products').find().toArray();
+  const sainsburysProducts = await sainsburysDB.collection('products').find().toArray();
 
   console.log(`🔍 Found ${tescoProducts.length} Tesco products and ${sainsburysProducts.length} Sainsbury's products`);
 
@@ -169,11 +169,6 @@ mongoose.connect(mongoURI).then(async () => {
      - Fat%: ${item.fat_percentage || 'N/A'}
      - Normalized: "${item.normalized}"`);
   });
-
-  console.log('\n🔧 Suggested Next Steps:');
-  console.log('- Check why normalization might differ for similar items');
-  console.log('- Add custom matching rules for common patterns');
-  console.log('- Test Mistral AI matching on these examples');
   //end of random unmatched items
 
   // Save to main database

@@ -32,17 +32,18 @@ puppeteer.use(StealthPlugin());
   await page.setExtraHTTPHeaders({ 'Referer': 'https://www.sainsburys.co.uk/' });
 
   // Categories and their codes
-//   const categories_list = ['dietary-and-lifestyle', 'fruit-veg', 'meat-fish', 'dairy-eggs-and-chilled', 'bakery', 'frozen-',
+//   const categories_list = ['dietary-and-lifestyle', 'fruit-veg', 'meat-fish', 'dairy-eggs-and-chilled', 'bakery', 'frozen',
 //     'food-cupboard', 'drinks', 'household', 'beauty-and-cosmetics', 'health-beauty', 'home', 'baby-toddler-products', 'pet'
 //   ];
 //   const categories_code = ['453878', '12518', '13343', '428866', '12320', '218831',
 //     '12422', '12192', '12564', '448352', '12448', '281806', '11651', '12298'
 //   ];
-const categories_list = ['dairy-eggs-and-chilled'
+const categories_list = ['food-cupboard'
   ];
-  const categories_code = ['428866'
+  const categories_code = ['12422'
   ];
-  //done: meat-fish, fruit-veg, dietary-and-lifestyle, dairy-eggs-and-chilled
+  //done: meat-fish, fruit-veg, dietary-and-lifestyle, dairy-eggs-and-chilled, frozen, food-cupboard
+  //todo: 'bakery', 'drinks', 'household', 'beauty-and-cosmetics', 'health-beauty', 'home', 'baby-toddler-products', 'pet'
 
   const maxPages = 2;  // limit to 2 pages for development
 

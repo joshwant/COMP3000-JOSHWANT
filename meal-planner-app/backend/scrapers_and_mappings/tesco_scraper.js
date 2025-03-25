@@ -34,9 +34,10 @@ puppeteer.use(StealthPlugin());
   await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
   await page.setExtraHTTPHeaders({ 'Referer': 'https://www.tesco.com/' });
 
-  const categories = ['frozen-food', 'bakery'];
+  const categories = ['treats-and-snacks'];
   let allProducts = [];
-  //done: frozen-food, bakery, fresh-food
+  //done: frozen-food, bakery, fresh-food, food-cupboard, drinks, treats_and_snacks
+  //todo: household, health-and-beauty, baby-and-toddler, pets, home-and-ents
 
   for (let category of categories) {
     console.log(`🔎 Scraping category: ${category}`);
