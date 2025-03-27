@@ -1,6 +1,8 @@
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+
 // Fetch shopping list from Firestore
 export const fetchShoppingList = async (userId) => {
   try {
@@ -20,17 +22,29 @@ export const fetchShoppingList = async (userId) => {
 // Add an item to Firestore
 export const addShoppingListItem = async (item, userId) => {
   try {
-    if (!userId) throw new Error('User ID is required to add an item.');
-    if (!item.name || !item.quantity || !item.size) {
-      throw new Error('All item fields must be filled.');
-    }
+    //Get product matches from your backend
+    const matchResponse = await fetch(`${API_URL}/api/match-item`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ itemName: item.name })
+    });
 
-    const newItemRef = await addDoc(collection(db, 'shoppingLists'), {
+    const matchData = await matchResponse.json();
+
+    //Prepare Firestore document
+    const itemData = {
       ...item,
       userId,
       createdAt: new Date(),
-    });
-    return { id: newItemRef.id, ...item };
+      ...(matchData.success ? {
+        priceMatches: matchData.matches // Stores Tesco / Sainsbury's prices
+      } : {})
+    };
+
+    //Save to Firestore
+    const newItemRef = await addDoc(collection(db, 'shoppingLists'), itemData);
+    return { id: newItemRef.id, ...itemData };
+
   } catch (error) {
     console.error('Error adding item:', error);
     return null;

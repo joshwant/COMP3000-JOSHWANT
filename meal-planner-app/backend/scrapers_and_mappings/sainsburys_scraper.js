@@ -38,12 +38,12 @@ puppeteer.use(StealthPlugin());
 //   const categories_code = ['453878', '12518', '13343', '428866', '12320', '218831',
 //     '12422', '12192', '12564', '448352', '12448', '281806', '11651', '12298'
 //   ];
-const categories_list = ['food-cupboard'
+const categories_list = ['drinks'
   ];
-  const categories_code = ['12422'
+  const categories_code = ['12192'
   ];
-  //done: meat-fish, fruit-veg, dietary-and-lifestyle, dairy-eggs-and-chilled, frozen, food-cupboard
-  //todo: 'bakery', 'drinks', 'household', 'beauty-and-cosmetics', 'health-beauty', 'home', 'baby-toddler-products', 'pet'
+  //done: meat-fish, fruit-veg, dietary-and-lifestyle, dairy-eggs-and-chilled, frozen, food-cupboard, bakery, drinks
+  //todo: 'household', 'beauty-and-cosmetics', 'health-beauty', 'home', 'baby-toddler-products', 'pet'
 
   const maxPages = 2;  // limit to 2 pages for development
 
