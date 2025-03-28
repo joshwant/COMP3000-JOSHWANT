@@ -3,139 +3,119 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const stringSimilarity = require('string-similarity');
+
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true
+}).then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ MongoDB error:', err));
 
-const productMappingSchema = new mongoose.Schema({}, { strict: false });
-const ProductMapping = mongoose.model('ProductMapping', productMappingSchema);
+const ProductMapping = mongoose.model('ProductMapping', new mongoose.Schema({}, { strict: false }));
 
-// Normalization
-function normalizeName(name) {
-  return name
-    .toLowerCase()
-    .replace(/tesco|sainsbury's|asda|aldi|morrisons|british|organic|so/gi, '')
-    .replace(/[^a-z0-9\s]/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
+let productCache = [];
+const refreshCache = async () => {
+  productCache = await ProductMapping.find().lean();
+  console.log(`🔄 Cache updated: ${productCache.length} products`);
+};
+refreshCache();
+setInterval(refreshCache, 300000); // Refresh every 5 minutes
 
-// Extract quantity from search term (e.g. "2 pints" → 1136ml)
-function extractQuantity(searchTerm) {
-  const quantityMap = {
-    pint: 568,
-    pints: 568,
-    litre: 1000,
-    liters: 1000,
-    l: 1000,
-    ml: 1,
-    g: 1
-  };
+// Normalize
+const normalizeName = (name) => name.toLowerCase()
+  .replace(/[^a-z0-9\s]/g, '')
+  .replace(/\b(favorite|favourite|tesco|sainsbury's|british|organic)\b/gi, '')
+  .replace(/\s+/g, ' ')
+  .trim();
 
-  const match = searchTerm.match(/(\d+)\s*(pint|pints|litre|liters|l|ml|g)/i);
+// Extract quantity from string
+const extractQuantity = (name) => {
+  // Handle pint multiples first (1 pint ~568 ml)
+  const pintMatch = name.match(/([\d.]+)\s*(pints?)\b/i);
+  if (pintMatch) return { value: parseFloat(pintMatch[1]) * 568, unit: 'ml' };
+
+  // Standard unit conversion; supports decimals (e.g., "1.13L")
+  const unitMap = { l: 1000, kg: 1000, g: 1, ml: 1 };
+  const match = name.match(/([\d.]+)\s*(l|kg|g|ml)\b/i);
   if (!match) return null;
 
-  const value = parseInt(match[1]);
-  const unit = match[2].toLowerCase();
-  return value * (quantityMap[unit] || 1);
-}
+  return { value: parseFloat(match[1]) * unitMap[match[2].toLowerCase()], unit: 'ml' };
+};
+
+const normalizeAndExtract = (name) => ({
+  // Remove any number+unit from the original name for a cleaner product name.
+  normalized: normalizeName(name.replace(/\d.*?(ml|g|kg|l|pints?)\b/gi, '')),
+  quantity: extractQuantity(name)
+});
+
+const formatMatch = (match) => ({
+  generic_name: match.generic_name,
+  tesco: {
+    name: match.tesco_name,
+    price: match.tesco_price,
+    quantity: match.tesco_quantity,
+    unit: match.tesco_quantity ? 'ml' : null
+  },
+  sainsburys: {
+    name: match.sainsburys_name,
+    price: match.sainsburys_price,
+    quantity: match.sainsburys_quantity,
+    unit: match.sainsburys_quantity ? 'ml' : null
+  },
+  score: match.score.toFixed(2)
+});
+
+// Improved scoring function
+const calculateScore = (normalizedQuery, product, queryQuantity) => {
+  const productName = normalizeName(product.generic_name);
+  const queryTokens = normalizedQuery.split(' ');
+  const productTokens = productName.split(' ');
+
+  // Token overlap: fraction of query tokens found in product name.
+  const tokenOverlapCount = queryTokens.filter(token => productTokens.includes(token)).length;
+  const tokenScore = tokenOverlapCount / queryTokens.length;
+
+  // Fuzzy similarity using full strings.
+  const fuzzyScore = stringSimilarity.compareTwoStrings(normalizedQuery, productName);
+  let nameScore = (0.7 * tokenScore) + (0.3 * fuzzyScore);
+
+  let candidateQuantity = extractQuantity(product.tesco_name) || product.tesco_quantity;
+  let quantityScore = 1;
+  if (queryQuantity && candidateQuantity) {
+    const qtyDiff = Math.abs(candidateQuantity.value - queryQuantity.value);
+    const tolerance = 0.2 * queryQuantity.value;
+    quantityScore = qtyDiff <= tolerance ? 1 - (qtyDiff / queryQuantity.value) : 0;
+  }
+
+  return nameScore * quantityScore;
+};
 
 app.post('/api/match-item', async (req, res) => {
   try {
     const { itemName } = req.body;
-
-    const allMappings = await ProductMapping.find().lean();
-
     const { normalized, quantity } = normalizeAndExtract(itemName);
 
-    const matches = allMappings.map(mapping => ({
-      ...mapping,
-      similarity: stringSimilarity.compareTwoStrings(
-        normalized,
-        mapping.generic_name
-      )
-    }))
-    .filter(m => m.similarity > 0.6) // Minimum similarity threshold
-    .sort((a, b) => b.similarity - a.similarity);
+    let candidates = productCache.map(product => {
+      const score = calculateScore(normalized, product, quantity);
+      return { ...product, score };
+    });
 
-    let bestMatch = null;
-    if (quantity) {
-      bestMatch = matches.find(m =>
-        m.tesco_quantity === quantity.value ||
-        m.sainsburys_quantity === quantity.value
-      );
+    candidates.sort((a, b) => b.score - a.score);
+    const topCandidates = candidates.slice(0, 3); // Get top 3 matches
+
+    if (topCandidates.length === 0 || topCandidates[0].score < 0.3) {
+      return res.json({ success: false, message: "No confident match found" });
     }
 
-    bestMatch = bestMatch || matches[0];
-
-    if (bestMatch?.similarity > 0.7) {
-      return res.json({
-        success: true,
-        matches: {
-          tesco: {
-            price: bestMatch.tesco_price,
-            name: bestMatch.tesco_name,
-            quantity: bestMatch.tesco_quantity
-          },
-          sainsburys: {
-            price: bestMatch.sainsburys_price,
-            name: bestMatch.sainsburys_name,
-            quantity: bestMatch.sainsburys_quantity
-          }
-        },
-        confidence: bestMatch.similarity
-      });
-    }
-
-    res.json({ success: false, message: 'No close matches found' });
-
+    res.json({ success: true, matches: topCandidates.map(formatMatch) });
   } catch (error) {
-    console.error('Matching error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('❌ Match error:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
-function normalizeAndExtract(name) {
-  const quantity = extractQuantity(name);
-
-  const normalized = name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/gi, '')
-    .replace(/\b(organic|free range|original|classic|ready to eat)\b/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  return { normalized, quantity };
-}
-
-function extractQuantity(name) {
-  const quantityRegex = /(\d+)\s*(g|kg|ml|l|pints?|litres?)\b/i;
-  const match = name.match(quantityRegex);
-  if (!match) return null;
-
-  let value = parseInt(match[1]);
-  const unit = match[2].toLowerCase();
-
-  // Convert all units to grams or milliliters for comparison
-  if (unit === 'kg') {
-    value *= 1000;
-  } else if (unit === 'l' || unit === 'litres') {
-    value *= 1000;
-  } else if (unit === 'pint' || unit === 'pints') {
-    value *= 568; // 1 pint ≈ 568ml
-  }
-
-  return {
-    value,
-    originalUnit: unit,
-    standardUnit: unit === 'kg' ? 'g' : 'ml'
-  };
-}
-
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
