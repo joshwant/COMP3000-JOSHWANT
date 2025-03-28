@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const stringSimilarity = require('string-similarity');
+const axios = require('axios');
 
 const app = express();
 
@@ -22,22 +23,18 @@ const refreshCache = async () => {
   console.log(`🔄 Cache updated: ${productCache.length} products`);
 };
 refreshCache();
-setInterval(refreshCache, 300000); // Refresh every 5 minutes
+setInterval(refreshCache, 600000);
 
-// Normalize
 const normalizeName = (name) => name.toLowerCase()
   .replace(/[^a-z0-9\s]/g, '')
   .replace(/\b(favorite|favourite|tesco|sainsbury's|british|organic)\b/gi, '')
   .replace(/\s+/g, ' ')
   .trim();
 
-// Extract quantity from string
 const extractQuantity = (name) => {
-  // Handle pint multiples first (1 pint ~568 ml)
   const pintMatch = name.match(/([\d.]+)\s*(pints?)\b/i);
   if (pintMatch) return { value: parseFloat(pintMatch[1]) * 568, unit: 'ml' };
 
-  // Standard unit conversion; supports decimals (e.g., "1.13L")
   const unitMap = { l: 1000, kg: 1000, g: 1, ml: 1 };
   const match = name.match(/([\d.]+)\s*(l|kg|g|ml)\b/i);
   if (!match) return null;
@@ -46,7 +43,6 @@ const extractQuantity = (name) => {
 };
 
 const normalizeAndExtract = (name) => ({
-  // Remove any number+unit from the original name for a cleaner product name.
   normalized: normalizeName(name.replace(/\d.*?(ml|g|kg|l|pints?)\b/gi, '')),
   quantity: extractQuantity(name)
 });
@@ -68,17 +64,14 @@ const formatMatch = (match) => ({
   score: match.score.toFixed(2)
 });
 
-// Improved scoring function
 const calculateScore = (normalizedQuery, product, queryQuantity) => {
   const productName = normalizeName(product.generic_name);
   const queryTokens = normalizedQuery.split(' ');
   const productTokens = productName.split(' ');
 
-  // Token overlap: fraction of query tokens found in product name.
   const tokenOverlapCount = queryTokens.filter(token => productTokens.includes(token)).length;
   const tokenScore = tokenOverlapCount / queryTokens.length;
 
-  // Fuzzy similarity using full strings.
   const fuzzyScore = stringSimilarity.compareTwoStrings(normalizedQuery, productName);
   let nameScore = (0.7 * tokenScore) + (0.3 * fuzzyScore);
 
@@ -104,13 +97,27 @@ app.post('/api/match-item', async (req, res) => {
     });
 
     candidates.sort((a, b) => b.score - a.score);
-    const topCandidates = candidates.slice(0, 3); // Get top 3 matches
+    const topCandidates = candidates.slice(0, 3);
 
     if (topCandidates.length === 0 || topCandidates[0].score < 0.3) {
       return res.json({ success: false, message: "No confident match found" });
     }
 
-    res.json({ success: true, matches: topCandidates.map(formatMatch) });
+    const mistralResponse = await axios.post(
+      'https://api.mistral.ai/v1/your-endpoint',
+      {
+        user_query: itemName,
+        candidates: topCandidates.map(formatMatch)
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.MISTRAL_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    res.json(mistralResponse.data);
   } catch (error) {
     console.error('❌ Match error:', error);
     res.status(500).json({ error: 'Server error' });
