@@ -36,9 +36,7 @@ export const addShoppingListItem = async (item, userId) => {
       ...item,
       userId,
       createdAt: new Date(),
-      ...(matchData.success ? {
-        priceMatches: matchData.matches // Stores Tesco / Sainsbury's prices
-      } : {})
+      matchResult: matchData.selected_candidate //Stores the match result from the backend
     };
 
     //Save to Firestore

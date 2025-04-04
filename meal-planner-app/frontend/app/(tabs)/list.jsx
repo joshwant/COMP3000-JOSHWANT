@@ -78,29 +78,16 @@ const List = () => {
           <Text style={styles.categoryHeader}>{title}</Text>
         )}
         renderItem={({ item }) => (
-          <SwipeListView
-            data={[item]}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.listItem}>
-                <Text style={styles.itemText}>
-                  {item.name} - {item.quantity} ({item.size})
-                </Text>
-              </View>
-            )}
-            renderHiddenItem={({ item }) => (
-              <View style={styles.hiddenItem}>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => handleDeleteItem(item.id)}
-                >
-                  <Text style={styles.deleteText}>Delete</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-            rightOpenValue={-75}
-            disableRightSwipe={true}
-          />
+          <View style={styles.listItem}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.itemText}>
+                {item.name} - {item.quantity} ({item.size})
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => handleDeleteItem(item.id)}>
+              <Text style={styles.deleteText}>🗑️</Text>
+            </TouchableOpacity>
+          </View>
         )}
         stickySectionHeadersEnabled={false}
       />
@@ -181,6 +168,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   listItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 16,
     backgroundColor: 'white',
     borderBottomWidth: 1,
@@ -270,24 +260,6 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     color: '#00B21E',
     fontSize: 16,
-    fontWeight: 'bold',
-  },
-  //Delete item:
-  hiddenItem: {
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    height: '100%',
-    backgroundColor: 'transparent',
-  },
-  deleteButton: {
-    width: 75,
-    height: '100%',
-    backgroundColor: 'red',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  deleteText: {
-    color: 'white',
     fontWeight: 'bold',
   },
   categoryHeader: {
