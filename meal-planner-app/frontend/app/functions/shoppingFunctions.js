@@ -36,7 +36,11 @@ export const addShoppingListItem = async (item, userId) => {
       ...item,
       userId,
       createdAt: new Date(),
-      matchResult: matchData.selected_candidate //Stores the match result from the backend
+      matchResult: matchData?.selected_candidate || {
+          selected_candidate: null,
+          confidence: 0,
+          message: matchData.message || 'No good match found',
+        } //Stores the match result from the backend
     };
 
     //Save to Firestore

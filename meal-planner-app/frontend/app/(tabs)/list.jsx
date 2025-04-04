@@ -83,6 +83,13 @@ const List = () => {
               <Text style={styles.itemText}>
                 {item.name} - {item.quantity} ({item.size})
               </Text>
+              {item.matchResult?.selected_candidate ? (
+                <Text style={styles.matchText}>
+                  Match: {item.matchResult.selected_candidate.generic_name}
+                </Text>
+              ) : (
+                <Text style={styles.noMatchText}>No match found</Text>
+              )}
             </View>
             <TouchableOpacity onPress={() => handleDeleteItem(item.id)}>
               <Text style={styles.deleteText}>🗑️</Text>
@@ -268,4 +275,12 @@ const styles = StyleSheet.create({
     color: 'grey',
     paddingTop: 10,
   },
+  matchText: {
+    fontSize: 12,
+    color: 'green',
+  },
+  noMatchText: {
+    fontSize: 12,
+    color: 'red',
+  }
 });

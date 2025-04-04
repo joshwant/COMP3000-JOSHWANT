@@ -12,8 +12,8 @@ app.use(express.json());
 
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true
-}).then(() => console.log('✅ MongoDB connected'))
-  .catch(err => console.error('❌ MongoDB error:', err));
+}).then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB error:', err));
 
 const ProductMapping = mongoose.model('ProductMapping', new mongoose.Schema({}, { strict: false }));
 
@@ -23,7 +23,7 @@ const refreshCache = async () => {
   console.log(`🔄 Cache updated: ${productCache.length} products`);
 };
 refreshCache();
-setInterval(refreshCache, 600000); // Refresh every 10 minutes
+setInterval(refreshCache, 6000000); // Refresh every 100 minutes
 
 // Normalize
 const normalizeName = (name) => name.toLowerCase()
@@ -128,7 +128,7 @@ const getMistralResponse = async (itemName, candidates) => {
     }
     return parsedContent;
   } catch (error) {
-    console.error('❌ Error from Mistral API:', error.response ? error.response.data : error.message);
+    console.error('Error from Mistral API:', error.response ? error.response.data : error.message);
     throw new Error('Mistral API request failed');
   }
 };
@@ -140,7 +140,7 @@ app.post('/api/match-item', async (req, res) => {
 
     // Check if productCache is properly populated
     if (!productCache || productCache.length === 0) {
-      console.error('❌ No products found in productCache');
+      console.error('No products found in productCache');
       return res.status(500).json({ error: 'Product cache is empty or undefined' });
     }
 
@@ -155,7 +155,15 @@ app.post('/api/match-item', async (req, res) => {
     const topCandidates = candidates.slice(0, 4); // Get top 4 matches
 
     if (topCandidates.length === 0 || topCandidates[0].score < 0.3) {
-      return res.json({ success: false, message: "No confident match found" });
+      return res.json({
+        success: true,
+        selected_candidate: {
+          selected_candidate: null,
+          confidence: 0,
+          message: "No good match found"
+        },
+        confidence: 0.95
+      });
     }
 
     // Get Mistral API response
@@ -169,7 +177,7 @@ app.post('/api/match-item', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Match error:', error);
+    console.error('Match error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
