@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const stringSimilarity = require('string-similarity');
-const axios = require('axios');
+const { Mistral } = require('@mistralai/mistralai');
 
 const app = express();
 
@@ -23,14 +23,16 @@ const refreshCache = async () => {
   console.log(`🔄 Cache updated: ${productCache.length} products`);
 };
 refreshCache();
-setInterval(refreshCache, 600000);
+setInterval(refreshCache, 600000); // Refresh every 10 minutes
 
+// Normalize
 const normalizeName = (name) => name.toLowerCase()
   .replace(/[^a-z0-9\s]/g, '')
   .replace(/\b(favorite|favourite|tesco|sainsbury's|british|organic)\b/gi, '')
   .replace(/\s+/g, ' ')
   .trim();
 
+// Extract quantity from string
 const extractQuantity = (name) => {
   const pintMatch = name.match(/([\d.]+)\s*(pints?)\b/i);
   if (pintMatch) return { value: parseFloat(pintMatch[1]) * 568, unit: 'ml' };
@@ -47,23 +49,7 @@ const normalizeAndExtract = (name) => ({
   quantity: extractQuantity(name)
 });
 
-const formatMatch = (match) => ({
-  generic_name: match.generic_name,
-  tesco: {
-    name: match.tesco_name,
-    price: match.tesco_price,
-    quantity: match.tesco_quantity,
-    unit: match.tesco_quantity ? 'ml' : null
-  },
-  sainsburys: {
-    name: match.sainsburys_name,
-    price: match.sainsburys_price,
-    quantity: match.sainsburys_quantity,
-    unit: match.sainsburys_quantity ? 'ml' : null
-  },
-  score: match.score.toFixed(2)
-});
-
+// Scoring function
 const calculateScore = (normalizedQuery, product, queryQuantity) => {
   const productName = normalizeName(product.generic_name);
   const queryTokens = normalizedQuery.split(' ');
@@ -86,38 +72,95 @@ const calculateScore = (normalizedQuery, product, queryQuantity) => {
   return nameScore * quantityScore;
 };
 
+// Mistral API
+const client = new Mistral({ apiKey: process.env.MISTRAL_API_KEY });
+
+const getMistralResponse = async (itemName, candidates) => {
+  try {
+    console.log('Sending candidates to Mistral:', itemName, candidates);
+
+    // Validate the candidate data
+    const formattedCandidates = candidates.map((candidate, index) => {
+      if (
+        !candidate.tesco_name || !candidate.sainsburys_name ||
+        !candidate.tesco_price || !candidate.sainsburys_price ||
+        !candidate.tesco_quantity || !candidate.sainsburys_quantity
+      ) {
+        console.error(`Candidate ${index + 1} is missing required data`, candidate);
+        return null;
+      }
+
+      return {
+        id: `candidate${index + 1}`,
+        generic_name: candidate.generic_name,
+        tesco_name: candidate.tesco_name,
+        sainsburys_name: candidate.sainsburys_name,
+        tesco_price: candidate.tesco_price,
+        sainsburys_price: candidate.sainsburys_price,
+        tesco_quantity: candidate.tesco_quantity,
+        sainsburys_quantity: candidate.sainsburys_quantity
+      };
+    });
+
+    if (formattedCandidates.length === 0) {
+      throw new Error('No valid candidates available to send to Mistral');
+    }
+
+    // Send candidates to Mistral for final selection
+    const chatResponse = await client.agents.complete({
+      agentId: "ag:b6930449:20250327:agent1:b03d9211",
+      messages: [{
+        role: 'user',
+        content: JSON.stringify({
+          query: itemName,
+          candidates: formattedCandidates
+        })
+      }],
+    });
+
+    console.log('Mistral Response:', chatResponse);
+    return chatResponse.choices[0].message.content;
+  } catch (error) {
+    console.error('❌ Error from Mistral API:', error.response ? error.response.data : error.message);
+    throw new Error('Mistral API request failed');
+  }
+};
+
 app.post('/api/match-item', async (req, res) => {
   try {
     const { itemName } = req.body;
     const { normalized, quantity } = normalizeAndExtract(itemName);
 
-    let candidates = productCache.map(product => {
+    // Check if productCache is properly populated
+    if (!productCache || productCache.length === 0) {
+      console.error('❌ No products found in productCache');
+      return res.status(500).json({ error: 'Product cache is empty or undefined' });
+    }
+
+    // Map over the productCache and calculate scores
+    let candidates = productCache.map((product, index) => {
       const score = calculateScore(normalized, product, quantity);
-      return { ...product, score };
+      return { ...product, score, id: `candidate${index + 1}` };
     });
 
+    // Sort candidates by score in descending order and take the top 4
     candidates.sort((a, b) => b.score - a.score);
-    const topCandidates = candidates.slice(0, 3);
+    const topCandidates = candidates.slice(0, 4); // Get top 4 matches
 
     if (topCandidates.length === 0 || topCandidates[0].score < 0.3) {
       return res.json({ success: false, message: "No confident match found" });
     }
 
-    const mistralResponse = await axios.post(
-      'https://api.mistral.ai/v1/your-endpoint',
-      {
-        user_query: itemName,
-        candidates: topCandidates.map(formatMatch)
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${process.env.MISTRAL_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    // Get Mistral API response
+    const mistralResponse = await getMistralResponse(itemName, topCandidates);
 
-    res.json(mistralResponse.data);
+    // Respond with the top 4 candidates and the Mistral response
+    res.json({
+      success: true,
+      selected_candidate: JSON.parse(mistralResponse),
+      confidence: 0.95
+    });
+
   } catch (error) {
     console.error('❌ Match error:', error);
     res.status(500).json({ error: 'Server error' });
