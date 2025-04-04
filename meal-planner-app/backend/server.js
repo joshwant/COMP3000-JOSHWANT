@@ -119,7 +119,14 @@ const getMistralResponse = async (itemName, candidates) => {
     });
 
     console.log('Mistral Response:', chatResponse);
-    return chatResponse.choices[0].message.content;
+    let parsedContent;
+    try {
+      parsedContent = JSON.parse(chatResponse.choices[0].message.content);
+    } catch (err) {
+      console.error("Failed to parse Mistral response:", chatResponse.choices[0].message.content);
+      throw new Error("Mistral response was not valid JSON");
+    }
+    return parsedContent;
   } catch (error) {
     console.error('❌ Error from Mistral API:', error.response ? error.response.data : error.message);
     throw new Error('Mistral API request failed');
@@ -157,7 +164,7 @@ app.post('/api/match-item', async (req, res) => {
     // Respond with the top 4 candidates and the Mistral response
     res.json({
       success: true,
-      selected_candidate: JSON.parse(mistralResponse),
+      selected_candidate: mistralResponse,
       confidence: 0.95
     });
 
