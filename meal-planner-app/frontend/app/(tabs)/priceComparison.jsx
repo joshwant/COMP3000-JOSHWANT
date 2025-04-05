@@ -5,36 +5,99 @@ import { loadCsvData } from '../helperFunctions/csvHelper';
 import PriceComparisonCard from '../components/PriceComparisonCard';
 import { getAuth } from 'firebase/auth';
 import { fetchShoppingList } from '../functions/shoppingFunctions';
+import { useCallback } from 'react';
+
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '@/config/firebase';
 
 const PriceComparison = () => {
   const [selectedStore, setSelectedStore] = useState('Tesco'); // Default store
   const [csvData, setCsvData] = useState([]);
   const [comparisonItems, setComparisonItems] = useState([]);
   const [shoppingList, setShoppingList] = useState([]);
+  const [lastUpdateTime, setLastUpdateTime] = useState(0);
 
   //Firebase Auth
   const auth = getAuth();
   const user = auth.currentUser;
 
   // Fetch shopping list from Firebase on mount
-  const loadShoppingList = async () => {
-    if (user) {
-      const items = await fetchShoppingList(user.uid);
-      setShoppingList(items);
-    }
-  };
-
   useEffect(() => {
-    loadShoppingList();
+    if (!user) return;
+
+    const q = query(collection(db, 'shoppingLists'), where('userId', '==', user.uid));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const items = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setShoppingList(prev => {
+          // Only process new items if the list is growing
+          if (items.length > prev.length) {
+            const newItems = items.slice(prev.length);
+            processNewItems(newItems);
+          }
+          return items;
+        });
+      });
+
+    return () => unsubscribe(); // Cleanup on unmount
   }, [user]);
 
+  const processNewItems = async (newItems) => {
+    const now = Date.now();
+    const loadedCsvData = (now - lastUpdateTime > 300000 || csvData.length === 0)
+      ? await loadCsvData()
+      : csvData;
+
+    if (now - lastUpdateTime > 300000) {
+      setLastUpdateTime(now);
+    }
+
+    const newComparisonItems = await Promise.all(newItems.map(async (shopItem) => {
+      if (shopItem.matchResult?.selected_candidate) {
+        const candidate = shopItem.matchResult.selected_candidate;
+        return {
+          id: shopItem.id,
+          itemName: shopItem.name,
+          quantity: shopItem.quantity,
+          productName: selectedStore === 'Tesco' ? candidate.tesco_name : candidate.sainsburys_name,
+          productPrice: selectedStore === 'Tesco' ? candidate.tesco_price : candidate.sainsburys_price,
+          notFound: false,
+        };
+      }
+
+      const match = loadedCsvData.find((csvItem) =>
+        csvItem["Product Name"].toLowerCase().includes(shopItem.name.toLowerCase())
+      );
+
+      return match ? {
+        id: shopItem.id,
+        itemName: shopItem.name,
+        quantity: shopItem.quantity,
+        productName: match["Product Name"],
+        productPrice: match.Price,
+        notFound: false,
+      } : {
+        id: shopItem.id,
+        itemName: shopItem.name,
+        quantity: shopItem.quantity,
+        notFound: true,
+      };
+    }));
+
+    setComparisonItems(prev => [...prev, ...newComparisonItems]);
+    if (loadedCsvData !== csvData) setCsvData(loadedCsvData);
+  };
+
   // Refresh function
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     // Load CSV data first
     const loadedCsvData = await loadCsvData();
     setCsvData(loadedCsvData);
 
-    const newComparisonItems = shoppingList.map((shopItem) => {
+    const updatedItems = await Promise.all(shoppingList.map(shopItem => {
       // Use the matched product data if available
       if (shopItem.matchResult?.selected_candidate) {
         const candidate = shopItem.matchResult.selected_candidate;
@@ -70,15 +133,15 @@ const PriceComparison = () => {
           notFound: true,
         };
       }
-    });
-    setComparisonItems(newComparisonItems);
-  };
+    }));
+    setComparisonItems(updatedItems);
+  }, [shoppingList, selectedStore, csvData]);
 
   useEffect(() => {
-    if (shoppingList.length > 0){
-    handleRefresh();
+    if (shoppingList.length > 0) {
+      handleRefresh();
     }
-  }, [shoppingList]);
+  }, [selectedStore]);
 
   const totalPrice = comparisonItems.reduce((sum, item) => {
     if (!item.notFound && item.productPrice) {
@@ -126,9 +189,9 @@ const PriceComparison = () => {
       </View>
 
       <ScrollView style={styles.scrollContainer}>
-        {comparisonItems.map((item) => (
+        {comparisonItems.map((item, index) => (
           <PriceComparisonCard
-            key={item.id}
+            key={`${item.id}-${index}`}
             itemName={item.itemName}
             quantity={item.quantity}
             productName={item.productName}
