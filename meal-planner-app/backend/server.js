@@ -7,7 +7,14 @@ const { Mistral } = require('@mistralai/mistralai');
 
 const app = express();
 
-app.use(cors());
+const corsOptions = {
+  origin: '*',
+  methods: 'GET,POST',
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
+
 app.use(express.json());
 
 mongoose.connect(process.env.MONGODB_URI, {
@@ -20,7 +27,7 @@ const ProductMapping = mongoose.model('ProductMapping', new mongoose.Schema({}, 
 let productCache = [];
 const refreshCache = async () => {
   productCache = await ProductMapping.find().lean();
-  console.log(`🔄 Cache updated: ${productCache.length} products`);
+  console.log(`Cache updated: ${productCache.length} products`);
 };
 refreshCache();
 setInterval(refreshCache, 6000000); // Refresh every 100 minutes
@@ -183,4 +190,9 @@ app.post('/api/match-item', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+const HOST = '0.0.0.0'; // This allows the server to accept requests from any IP on my local network
+app.listen(PORT, HOST, () => console.log(`Server running on http://0.0.0.0:${PORT}`));
+
+app.get('/test', (req, res) => {
+  res.send('Server is working!');
+});

@@ -33,10 +33,22 @@ const PriceComparison = () => {
     // Load CSV data first
     const loadedCsvData = await loadCsvData();
     setCsvData(loadedCsvData);
-//     console.log('CSV Data loaded:', loadedCsvData);
 
     const newComparisonItems = shoppingList.map((shopItem) => {
-      // Find a CSV item whose product name contains the shopping list item name
+      // Use the matched product data if available
+      if (shopItem.matchResult?.selected_candidate) {
+        const candidate = shopItem.matchResult.selected_candidate;
+        return {
+          id: shopItem.id,
+          itemName: shopItem.name,
+          quantity: shopItem.quantity,
+          productName: selectedStore === 'Tesco' ? candidate.tesco_name : candidate.sainsburys_name,
+          productPrice: selectedStore === 'Tesco' ? candidate.tesco_price : candidate.sainsburys_price,
+          notFound: false,
+        };
+      }
+
+      // Fallback to CSV search if no match result
       const match = loadedCsvData.find((csvItem) =>
         csvItem["Product Name"].toLowerCase().includes(shopItem.name.toLowerCase())
       );
@@ -70,9 +82,14 @@ const PriceComparison = () => {
 
   const totalPrice = comparisonItems.reduce((sum, item) => {
     if (!item.notFound && item.productPrice) {
-      // Remove the "£" symbol and convert to float
-      const price = parseFloat(item.productPrice.replace('£', '')) || 0;
-      return sum + price;
+      // Handle both "85p" and "£0.85" formats
+      let priceValue = 0;
+      if (item.productPrice.includes('£')) {
+        priceValue = parseFloat(item.productPrice.replace('£', '')) || 0;
+      } else if (item.productPrice.includes('p')) {
+        priceValue = parseFloat(item.productPrice.replace('p', '')) / 100 || 0;
+      }
+      return sum + priceValue;
     }
     return sum;
   }, 0).toFixed(2);

@@ -1,7 +1,8 @@
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+//const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.0.173:5000';
 
 // Fetch shopping list from Firestore
 export const fetchShoppingList = async (userId) => {
@@ -22,33 +23,40 @@ export const fetchShoppingList = async (userId) => {
 // Add an item to Firestore
 export const addShoppingListItem = async (item, userId) => {
   try {
-    //Get product matches from your backend
+    // Get product matches from your backend
     const matchResponse = await fetch(`${API_URL}/api/match-item`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ itemName: item.name })
+      body: JSON.stringify({ itemName: item.name }),
     });
+
+    // Check if the response is successful
+    if (!matchResponse.ok) {
+      console.error('Failed to fetch match data:', matchResponse.statusText);
+      throw new Error(`Failed to fetch match data: ${matchResponse.statusText}`);
+    }
 
     const matchData = await matchResponse.json();
 
-    //Prepare Firestore document
+    // Prepare Firestore document
     const itemData = {
       ...item,
       userId,
       createdAt: new Date(),
       matchResult: matchData?.selected_candidate || {
-          selected_candidate: null,
-          confidence: 0,
-          message: matchData.message || 'No good match found',
-        } //Stores the match result from the backend
+        selected_candidate: null,
+        confidence: 0,
+        message: matchData.message || 'No good match found',
+      },
     };
 
-    //Save to Firestore
+    // Save to Firestore
     const newItemRef = await addDoc(collection(db, 'shoppingLists'), itemData);
     return { id: newItemRef.id, ...itemData };
 
   } catch (error) {
     console.error('Error adding item:', error);
+    alert(`Error: ${error.message}`);
     return null;
   }
 };
