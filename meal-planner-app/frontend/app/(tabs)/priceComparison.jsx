@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Platform } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Platform, ActivityIndicator } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { Picker } from '@react-native-picker/picker';
 import { loadCsvData } from '../helperFunctions/csvHelper';
@@ -17,6 +17,7 @@ const PriceComparison = () => {
   const [shoppingList, setShoppingList] = useState([]);
   const [lastUpdateTime, setLastUpdateTime] = useState(0);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   //Firebase Auth
   const auth = getAuth();
@@ -24,27 +25,29 @@ const PriceComparison = () => {
 
   // Fetch shopping list from Firebase on mount
   useEffect(() => {
-    if (!user) return;
+      if (!user) return;
 
-    const q = query(collection(db, 'shoppingLists'), where('userId', '==', user.uid));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const items = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      setIsLoading(true);
 
-      setShoppingList(prev => {
-          // Only process new items if the list is growing
+      const q = query(collection(db, 'shoppingLists'), where('userId', '==', user.uid));
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const items = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setShoppingList(prev => {
           if (items.length > prev.length) {
             const newItems = items.slice(prev.length);
             processNewItems(newItems);
           }
           return items;
         });
+        setIsLoading(false);
       });
 
-    return () => unsubscribe(); // Cleanup on unmount
-  }, [user]);
+      return () => unsubscribe();
+    }, [user]);
 
   const processNewItems = async (newItems) => {
     const now = Date.now();
@@ -225,7 +228,10 @@ const PriceComparison = () => {
         </Modal>
       </View>
 
-      <ScrollView style={styles.scrollContainer}>
+      {isLoading ? (
+        <ActivityIndicator size="large" color="#00B21E" />
+      ) : (
+        <ScrollView style={styles.scrollContainer}>
         {comparisonItems.map((item, index) => (
           <PriceComparisonCard
             key={`${item.id}-${index}`}
@@ -236,7 +242,8 @@ const PriceComparison = () => {
             notFound={item.notFound}
           />
         ))}
-      </ScrollView>
+        </ScrollView>
+      )}
 
       <View style={styles.footer}>
         <View style={styles.totalPriceContainer}>
