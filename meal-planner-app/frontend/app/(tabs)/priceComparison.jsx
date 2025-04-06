@@ -164,9 +164,6 @@ const PriceComparison = () => {
   const storeOptions = [
     { label: 'Tesco', value: 'Tesco' },
     { label: "Sainsbury's", value: "Sainsbury's" },
-    { label: 'Aldi', value: 'Aldi' },
-    { label: 'Morrisons', value: 'Morrisons' },
-    { label: 'ASDA', value: 'ASDA' },
   ];
 
   const toggleDropdown = () => {
@@ -246,11 +243,8 @@ const PriceComparison = () => {
           <Text style={styles.totalLabel}>Total at {selectedStore}</Text>
           <Text style={styles.totalAmount}>£{totalPrice}</Text>
         </View>
-
-        <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
-          <Text style={styles.refreshButtonText}>Refresh Price Comparison</Text>
-        </TouchableOpacity>
       </View>
+
     </View>
   )
 }
@@ -351,17 +345,6 @@ const styles = StyleSheet.create({
   },
   totalAmount: {
     fontSize: 16,
-    fontWeight: 'bold',
-  },
-  refreshButton: {
-    backgroundColor: '#00B21E',
-    padding: 15,
-    borderRadius: 4,
-    alignItems: 'center',
-  },
-  refreshButtonText: {
-    color: 'white',
-    fontSize: 14,
     fontWeight: 'bold',
   },
 })
