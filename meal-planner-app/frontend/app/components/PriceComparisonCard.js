@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 
-const PriceComparisonCard = ({ itemName, quantity, productName, productPrice, notFound }) => {
-  return (
+const PriceComparisonCard = ({ itemName, quantity, productName, productPrice, productImage, unitPrice, notFound }) => {
+//    console.log('Product Image URL in card:', productImage);
+    return (
     <View style={styles.itemContainer}>
       <View style={styles.itemDetails}>
         <Text style={styles.itemName}>{itemName}</Text>
@@ -17,8 +18,7 @@ const PriceComparisonCard = ({ itemName, quantity, productName, productPrice, no
           </View>
         )}
 
-        {/* Keeping unit price hardcoded for now */}
-        <Text style={styles.unitPrice}>£0.31/piece</Text>
+        <Text style={styles.unitPrice}>{unitPrice}</Text>
 
         <View style={styles.actionButtons}>
           <TouchableOpacity style={styles.swapButton}>
@@ -28,7 +28,7 @@ const PriceComparisonCard = ({ itemName, quantity, productName, productPrice, no
       </View>
       <View style={styles.itemImage}>
         <Image
-          source={{ uri: 'https://www.themealdb.com/images/ingredients/banana.png' }} // Hardcoded image for now
+          source={{ uri: productImage }} // Dynamic images that were taken from scraper
           style={styles.productImage}
         />
       </View>

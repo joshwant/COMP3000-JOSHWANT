@@ -62,12 +62,17 @@ const PriceComparison = () => {
     const newComparisonItems = await Promise.all(newItems.map(async (shopItem) => {
       if (shopItem.matchResult?.selected_candidate) {
         const candidate = shopItem.matchResult.selected_candidate;
+        const productImage = selectedStore === 'Tesco' ? candidate.tescoImageUrl : candidate.sainsburysImageUrl;
+        const unitPrice = selectedStore === 'Tesco' ? candidate.tescoPricePerUnit : candidate.sainsburysPricePerUnit;
+        console.log('Product Image in newComparisonItems:', productImage);
         return {
           id: shopItem.id,
           itemName: shopItem.name,
           quantity: shopItem.quantity,
           productName: selectedStore === 'Tesco' ? candidate.tesco_name : candidate.sainsburys_name,
           productPrice: selectedStore === 'Tesco' ? candidate.tesco_price : candidate.sainsburys_price,
+          productImage,
+          unitPrice,
           notFound: false,
         };
       }
@@ -108,12 +113,16 @@ const PriceComparison = () => {
       // Use the matched product data if available
       if (shopItem.matchResult?.selected_candidate) {
         const candidate = shopItem.matchResult.selected_candidate;
+        const productImage = selectedStore === 'Tesco' ? candidate.tescoImageUrl : candidate.sainsburysImageUrl;
+        const unitPrice = selectedStore === 'Tesco' ? candidate.tescoPricePerUnit : candidate.sainsburysPricePerUnit;
         return {
           id: shopItem.id,
           itemName: shopItem.name,
           quantity: shopItem.quantity,
           productName: selectedStore === 'Tesco' ? candidate.tesco_name : candidate.sainsburys_name,
           productPrice: selectedStore === 'Tesco' ? candidate.tesco_price : candidate.sainsburys_price,
+          productImage,
+          unitPrice,
           notFound: false,
         };
       }
@@ -239,6 +248,8 @@ const PriceComparison = () => {
             quantity={item.quantity}
             productName={item.productName}
             productPrice={item.productPrice}
+            productImage={item.productImage}
+            unitPrice={item.unitPrice}
             notFound={item.notFound}
           />
         ))}
