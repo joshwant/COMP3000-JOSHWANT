@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Platform } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import { Dropdown } from 'react-native-element-dropdown';
+import { Picker } from '@react-native-picker/picker';
 import { loadCsvData } from '../helperFunctions/csvHelper';
 import PriceComparisonCard from '../components/PriceComparisonCard';
 import { getAuth } from 'firebase/auth';
@@ -16,6 +16,7 @@ const PriceComparison = () => {
   const [comparisonItems, setComparisonItems] = useState([]);
   const [shoppingList, setShoppingList] = useState([]);
   const [lastUpdateTime, setLastUpdateTime] = useState(0);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
 
   //Firebase Auth
   const auth = getAuth();
@@ -87,8 +88,11 @@ const PriceComparison = () => {
       };
     }));
 
-    setComparisonItems(prev => [...prev, ...newComparisonItems]);
-    if (loadedCsvData !== csvData) setCsvData(loadedCsvData);
+    setComparisonItems(prev => {
+      const existingIds = new Set(prev.map(i => i.id));
+      const filteredNew = newComparisonItems.filter(item => !existingIds.has(item.id));
+      return [...prev, ...filteredNew];
+    });
   };
 
   // Refresh function
@@ -165,6 +169,15 @@ const PriceComparison = () => {
     { label: 'ASDA', value: 'ASDA' },
   ];
 
+  const toggleDropdown = () => {
+    setDropdownVisible(!dropdownVisible);
+  };
+
+  const selectStore = (value) => {
+    setSelectedStore(value);
+    setDropdownVisible(false);
+  };
+
   return (
     <View style={styles.container}>
       <View>
@@ -176,16 +189,43 @@ const PriceComparison = () => {
           <Text style={styles.totalItemsLabel}>Total Items</Text>
           <Text style={styles.totalItemsValue}>{shoppingList.length} items</Text>
         </View>
-        <Dropdown
-          style={styles.dropdown}
-          data={storeOptions}
-          labelField="label"
-          valueField="value"
-          value={selectedStore}
-          onChange={item => setSelectedStore(item.value)}
-          containerStyle={styles.dropdownContainer}
-          selectedTextStyle={styles.selectedText}
-        />
+
+        <TouchableOpacity
+          style={styles.dropdownButton}
+          onPress={toggleDropdown}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.dropdownButtonText}>{selectedStore}</Text>
+          <Text style={styles.dropdownArrow}>▼</Text>
+        </TouchableOpacity>
+
+        <Modal
+          visible={dropdownVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setDropdownVisible(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setDropdownVisible(false)}
+          >
+            <View style={styles.dropdownOptions}>
+              {storeOptions.map((store) => (
+                <TouchableOpacity
+                  key={store.value}
+                  style={[
+                    styles.optionItem,
+                    selectedStore === store.value && styles.selectedOption
+                  ]}
+                  onPress={() => selectStore(store.value)}
+                >
+                  <Text style={styles.optionText}>{store.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
 
       <ScrollView style={styles.scrollContainer}>
@@ -215,7 +255,7 @@ const PriceComparison = () => {
   )
 }
 
-export default PriceComparison
+export default PriceComparison;
 
 const styles = StyleSheet.create({
   container: {
@@ -240,23 +280,55 @@ const styles = StyleSheet.create({
   sortOptions: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    paddingHorizontal: 8,
   },
-  dropdown: {
-    width: 140,
+  dropdownButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#e0e0e0',
-    borderRadius: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: '#fff',
-    marginLeft: 'auto',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#f8f8f8',
+    minWidth: 150,
   },
-  dropdownContainer: {
-    borderRadius: 4,
+  dropdownButtonText: {
+    fontSize: 16,
+    color: '#333',
   },
-  selectedText: {
-    fontSize: 14,
+  dropdownArrow: {
+    marginLeft: 8,
+    fontSize: 12,
+    color: '#666',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dropdownOptions: {
+    width: '80%',
+    maxHeight: '60%',
+    backgroundColor: 'white',
+    borderRadius: 8,
+    paddingVertical: 8,
+    elevation: 5,
+  },
+  optionItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  selectedOption: {
+    backgroundColor: '#f0f0f0',
+  },
+  optionText: {
+    fontSize: 16,
+    color: '#333',
   },
   scrollContainer: {
     flex: 1,

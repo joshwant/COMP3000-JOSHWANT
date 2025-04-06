@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Modal, SectionList } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { SwipeListView } from 'react-native-swipe-list-view';
 import { fetchShoppingList, addShoppingListItem, deleteShoppingListItem } from '../functions/shoppingFunctions';
-import { Picker } from '@react-native-picker/picker';
-import { Dropdown } from 'react-native-element-dropdown';
 
 const categories = [
   'Produce',
@@ -22,6 +19,9 @@ const List = () => {
   const [shoppingList, setShoppingList] = useState([]); // Holds shopping list items
   const [isModalVisible, setModalVisible] = useState(false); // Modal visibility
   const [newItem, setNewItem] = useState({ name: '', quantity: '', size: '', category: 'Other' }); // New item data
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [categoryDropdownVisible, setCategoryDropdownVisible] = useState(false);
+
   const auth = getAuth();
   const user = auth.currentUser;
 
@@ -78,7 +78,11 @@ const List = () => {
           <Text style={styles.categoryHeader}>{title}</Text>
         )}
         renderItem={({ item }) => (
-          <View style={styles.listItem}>
+          <TouchableOpacity
+            onPress={() => {/* Handle item press if needed */}}
+            onLongPress={() => handleDeleteItem(item.id)}
+            style={styles.listItem}
+          >
             <View style={{ flex: 1 }}>
               <Text style={styles.itemText}>
                 {item.name} - {item.quantity} ({item.size})
@@ -94,7 +98,7 @@ const List = () => {
             <TouchableOpacity onPress={() => handleDeleteItem(item.id)}>
               <Text style={styles.deleteText}>🗑️</Text>
             </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         )}
         stickySectionHeadersEnabled={false}
       />
@@ -135,16 +139,45 @@ const List = () => {
               onChangeText={(text) => setNewItem((prev) => ({ ...prev, size: text }))}
             />
 
-            <Dropdown
-              style={styles.dropdown}
-              data={categories.map((cat) => ({ label: cat, value: cat }))}
-              labelField="label"
-              valueField="value"
-              value={newItem.category}
-              onChange={(item) => setNewItem((prev) => ({ ...prev, category: item.value }))}
-              containerStyle={styles.dropdownContainer}
-              selectedTextStyle={styles.selectedText}
-            />
+            <TouchableOpacity
+              style={styles.dropdownButton}
+              onPress={() => setCategoryDropdownVisible(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.dropdownButtonText}>{newItem.category}</Text>
+              <Text style={styles.dropdownArrow}>▼</Text>
+            </TouchableOpacity>
+
+            <Modal
+              visible={categoryDropdownVisible}
+              transparent={true}
+              animationType="fade"
+              onRequestClose={() => setCategoryDropdownVisible(false)}
+            >
+              <TouchableOpacity
+                style={styles.modalOverlay}
+                activeOpacity={1}
+                onPress={() => setCategoryDropdownVisible(false)}
+              >
+                <View style={styles.dropdownOptions}>
+                  {categories.map((category) => (
+                    <TouchableOpacity
+                      key={category}
+                      style={[
+                        styles.optionItem,
+                        newItem.category === category && styles.selectedOption
+                      ]}
+                      onPress={() => {
+                        setNewItem(prev => ({...prev, category}));
+                        setCategoryDropdownVisible(false);
+                      }}
+                    >
+                      <Text style={styles.optionText}>{category}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </TouchableOpacity>
+            </Modal>
 
             <TouchableOpacity style={styles.saveButton} onPress={handleAddItem}>
               <Text style={styles.saveButtonText}>Add</Text>
@@ -231,22 +264,53 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: 'white',
   },
-  dropdown: {
-    width: '100%',
+  dropdownButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: '#fff',
+    padding: 12,
     marginBottom: 12,
+    backgroundColor: 'white',
   },
-  dropdownContainer: {
-    borderRadius: 8,
-  },
-  selectedText: {
+  dropdownButtonText: {
     fontSize: 16,
-    color: 'black',
+    color: '#333',
+  },
+  dropdownArrow: {
+    marginLeft: 8,
+    fontSize: 12,
+    color: '#666',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dropdownOptions: {
+    width: '80%',
+    backgroundColor: 'white',
+    borderRadius: 8,
+    paddingVertical: 8,
+    elevation: 5,
+  },
+  optionItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  selectedOption: {
+    backgroundColor: '#f0f0f0',
+  },
+  optionText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  menuItemText: {
+    fontSize: 16,
+    padding: 10,
   },
   saveButton: {
     backgroundColor: '#00B21E',
