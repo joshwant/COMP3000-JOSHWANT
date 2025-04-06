@@ -79,8 +79,6 @@ const List = () => {
         )}
         renderItem={({ item }) => (
           <TouchableOpacity
-            onPress={() => {/* Handle item press if needed */}}
-            onLongPress={() => handleDeleteItem(item.id)}
             style={styles.listItem}
           >
             <View style={{ flex: 1 }}>

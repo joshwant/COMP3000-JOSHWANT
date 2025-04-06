@@ -17,12 +17,13 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true
-}).then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB error:', err));
+const mainConnection = mongoose.createConnection(process.env.MONGODB_URI_MAIN, { useNewUrlParser: true});
+const tescoConnection = mongoose.createConnection(process.env.MONGODB_URI_TESCO, { useNewUrlParser: true});
+const sainsburysConnection = mongoose.createConnection(process.env.MONGODB_URI_SAINSBURYS, { useNewUrlParser: true});
 
-const ProductMapping = mongoose.model('ProductMapping', new mongoose.Schema({}, { strict: false }));
+const ProductMapping = mainConnection.model('ProductMapping', new mongoose.Schema({}, { strict: false }), 'productmappings');
+const TescoProduct = tescoConnection.model('TescoProduct', new mongoose.Schema({}, { strict: false }), 'products');
+const SainsburysProduct = sainsburysConnection.model('SainsburysProduct', new mongoose.Schema({}, { strict: false }), 'products');
 
 let productCache = [];
 const refreshCache = async () => {
@@ -77,6 +78,45 @@ const calculateScore = (normalizedQuery, product, queryQuantity) => {
   }
 
   return nameScore * quantityScore;
+};
+
+// Get tesco and sainsburys imageurl and price per unit from database
+const fetchAdditionalProductDetails = async (selectedCandidate) => {
+  try {
+    console.log('Looking for Tesco:', selectedCandidate.tesco_name);
+    console.log('Looking for Sainsburys:', selectedCandidate.sainsburys_name);
+
+    const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Fetch product details from both tesco and sainsburys databases
+    const [tescoProduct, sainsburysProduct] = await Promise.all([
+      TescoProduct.findOne({ name: new RegExp(escapeRegex(selectedCandidate.tesco_name), 'i') }).lean(),
+      SainsburysProduct.findOne({ name: new RegExp(escapeRegex(selectedCandidate.sainsburys_name), 'i') }).lean()
+    ]);
+
+    console.log('Tesco DB Match:', tescoProduct ? tescoProduct.name : 'undefined');
+    console.log('Sainsbury\'s DB Match:', sainsburysProduct ? sainsburysProduct.name : 'undefined');
+
+    return {
+      tescoImageUrl: tescoProduct?.imageUrl || null,
+      sainsburysImageUrl: sainsburysProduct?.imageUrl || null,
+      tescoPricePerUnit: tescoProduct?.pricePerUnit || null,
+      sainsburysPricePerUnit: sainsburysProduct?.pricePerUnit || null
+    };
+  } catch (error) {
+    console.error('Error fetching additional product details:', error);
+    return {
+      tescoImageUrl: null,
+      sainsburysImageUrl: null,
+      tescoPricePerUnit: null,
+      sainsburysPricePerUnit: null
+    };
+  }
+};
+
+// Utility to escape regex special characters in names
+const escapeRegex = (text) => {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 };
 
 // Mistral API
@@ -176,8 +216,28 @@ app.post('/api/match-item', async (req, res) => {
     // Get Mistral API response
     const mistralResponse = await getMistralResponse(itemName, topCandidates);
 
-    // Respond with the top 4 candidates and the Mistral response
-    res.json({
+    if (mistralResponse.selected_candidate) {
+      // Fetch additional product details from both Tesco and Sainsburys
+      const additionalDetails = await fetchAdditionalProductDetails(mistralResponse.selected_candidate);
+
+      // Merge additional details into the selected candidate
+      const enhancedResponse = {
+        ...mistralResponse,
+        selected_candidate: {
+          ...mistralResponse.selected_candidate,
+          ...additionalDetails
+        }
+      };
+
+      return res.json({
+        success: true,
+        selected_candidate: enhancedResponse,
+        confidence: 0.95
+      });
+    }
+
+    // If no selected candidate then return the original mistral response
+    return res.json({
       success: true,
       selected_candidate: mistralResponse,
       confidence: 0.95
