@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Modal, SectionList } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { fetchShoppingList, addShoppingListItem, deleteShoppingListItem } from '../functions/shoppingFunctions';
+import Stepper from '../components/Stepper';
 
 const categories = [
   'Produce',
@@ -99,6 +100,7 @@ const List = () => {
           </TouchableOpacity>
         )}
         stickySectionHeadersEnabled={false}
+        ListFooterComponent={<View style={{ height: 40 }} />}
       />
 
       {/* Add Item Button */}
@@ -121,21 +123,20 @@ const List = () => {
             />
 
             <TextInput
-              style={[styles.input, { color: 'black' }]}
-              placeholder="Quantity (e.g., 2)"
-              placeholderTextColor="gray"
-              keyboardType="numeric"
-              value={newItem.quantity}
-              onChangeText={(text) => setNewItem((prev) => ({ ...prev, quantity: text }))}
-            />
-
-            <TextInput
               style={styles.input}
               placeholder="Size (e.g., 500g)"
               placeholderTextColor="gray"
               value={newItem.size}
               onChangeText={(text) => setNewItem((prev) => ({ ...prev, size: text }))}
             />
+
+            <View style={styles.quantityContainer}>
+              <Text style={styles.quantityLabel}>Quantity</Text>
+              <Stepper
+                value={Number(newItem.quantity) || 1}
+                onChange={(newValue) => setNewItem(prev => ({ ...prev, quantity: newValue.toString() }))}
+              />
+            </View>
 
             <TouchableOpacity
               style={styles.dropdownButton}
@@ -261,6 +262,20 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     fontSize: 16,
     backgroundColor: 'white',
+  },
+  quantityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  quantityLabel: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1,
   },
   dropdownButton: {
     flexDirection: 'row',
