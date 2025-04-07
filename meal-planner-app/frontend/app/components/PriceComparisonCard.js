@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 
 const PriceComparisonCard = ({ itemName, quantity, productName, productPrice, productImage, unitPrice, notFound }) => {
-//    console.log('Product Image URL in card:', productImage);
     return (
     <View style={styles.itemContainer}>
       <View style={styles.itemDetails}>

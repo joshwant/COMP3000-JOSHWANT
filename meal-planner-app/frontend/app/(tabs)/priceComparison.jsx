@@ -1,7 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Platform, ActivityIndicator } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import { Picker } from '@react-native-picker/picker';
-import { loadCsvData } from '../helperFunctions/csvHelper';
 import PriceComparisonCard from '../components/PriceComparisonCard';
 import { getAuth } from 'firebase/auth';
 import { fetchShoppingList } from '../functions/shoppingFunctions';
@@ -12,10 +10,8 @@ import { db } from '@/config/firebase';
 
 const PriceComparison = () => {
   const [selectedStore, setSelectedStore] = useState('Tesco'); // Default store
-  const [csvData, setCsvData] = useState([]);
   const [comparisonItems, setComparisonItems] = useState([]);
   const [shoppingList, setShoppingList] = useState([]);
-  const [lastUpdateTime, setLastUpdateTime] = useState(0);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -50,21 +46,11 @@ const PriceComparison = () => {
     }, [user]);
 
   const processNewItems = async (newItems) => {
-    const now = Date.now();
-    const loadedCsvData = (now - lastUpdateTime > 300000 || csvData.length === 0)
-      ? await loadCsvData()
-      : csvData;
-
-    if (now - lastUpdateTime > 300000) {
-      setLastUpdateTime(now);
-    }
-
     const newComparisonItems = await Promise.all(newItems.map(async (shopItem) => {
       if (shopItem.matchResult?.selected_candidate) {
         const candidate = shopItem.matchResult.selected_candidate;
         const productImage = selectedStore === 'Tesco' ? candidate.tescoImageUrl : candidate.sainsburysImageUrl;
         const unitPrice = selectedStore === 'Tesco' ? candidate.tescoPricePerUnit : candidate.sainsburysPricePerUnit;
-        console.log('Product Image in newComparisonItems:', productImage);
         return {
           id: shopItem.id,
           itemName: shopItem.name,
@@ -76,25 +62,19 @@ const PriceComparison = () => {
           notFound: false,
         };
       }
-
-      const match = loadedCsvData.find((csvItem) =>
-        csvItem["Product Name"].toLowerCase().includes(shopItem.name.toLowerCase())
-      );
-
-      return match ? {
-        id: shopItem.id,
-        itemName: shopItem.name,
-        quantity: shopItem.quantity,
-        productName: match["Product Name"],
-        productPrice: match.Price,
-        notFound: false,
-      } : {
+      // If no candidate - mark as unmatched
+      return {
         id: shopItem.id,
         itemName: shopItem.name,
         quantity: shopItem.quantity,
         notFound: true,
       };
     }));
+
+    const sortedNew = newComparisonItems.sort((a, b) => {
+      if (a.notFound === b.notFound) return 0;
+      return a.notFound ? -1 : 1;
+    });
 
     setComparisonItems(prev => {
       const existingIds = new Set(prev.map(i => i.id));
@@ -105,10 +85,6 @@ const PriceComparison = () => {
 
   // Refresh function
   const handleRefresh = useCallback(async () => {
-    // Load CSV data first
-    const loadedCsvData = await loadCsvData();
-    setCsvData(loadedCsvData);
-
     const updatedItems = await Promise.all(shoppingList.map(shopItem => {
       // Use the matched product data if available
       if (shopItem.matchResult?.selected_candidate) {
@@ -126,32 +102,22 @@ const PriceComparison = () => {
           notFound: false,
         };
       }
-
-      // Fallback to CSV search if no match result
-      const match = loadedCsvData.find((csvItem) =>
-        csvItem["Product Name"].toLowerCase().includes(shopItem.name.toLowerCase())
-      );
-
-      if (match) {
-        return {
-          id: shopItem.id,
-          itemName: shopItem.name,
-          quantity: shopItem.quantity,
-          productName: match["Product Name"],
-          productPrice: match.Price,
-          notFound: false,
-        };
-      } else {
-        return {
-          id: shopItem.id,
-          itemName: shopItem.name,
-          quantity: shopItem.quantity,
-          notFound: true,
-        };
-      }
+      return {
+        id: shopItem.id,
+        itemName: shopItem.name,
+        quantity: shopItem.quantity,
+        notFound: true,
+      };
     }));
+
+    // Sort updated items with unmatched ones at the top
+    const sortedUpdated = updatedItems.sort((a, b) => {
+      if (a.notFound === b.notFound) return 0;
+      return a.notFound ? -1 : 1;
+    });
+
     setComparisonItems(updatedItems);
-  }, [shoppingList, selectedStore, csvData]);
+  }, [shoppingList, selectedStore]);
 
   useEffect(() => {
     if (shoppingList.length > 0) {
@@ -172,6 +138,8 @@ const PriceComparison = () => {
     }
     return sum;
   }, 0).toFixed(2);
+
+  const anyUnmatched = comparisonItems.some(item => item.notFound);
 
   const storeOptions = [
     { label: 'Tesco', value: 'Tesco' },
@@ -261,6 +229,11 @@ const PriceComparison = () => {
           <Text style={styles.totalLabel}>Total at {selectedStore}</Text>
           <Text style={styles.totalAmount}>£{totalPrice}</Text>
         </View>
+        {anyUnmatched && (
+          <Text style={styles.unmatchedNote}>
+            * Some items are unmatched so the total price may not be accurate.
+          </Text>
+        )}
       </View>
 
     </View>
@@ -364,5 +337,11 @@ const styles = StyleSheet.create({
   totalAmount: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  unmatchedNote: {
+    fontSize: 12,
+    color: 'red',
+    marginTop: 4,
+    fontStyle: 'italic',
   },
 })
