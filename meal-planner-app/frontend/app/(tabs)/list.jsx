@@ -16,6 +16,18 @@ const categories = [
   'Other',
 ];
 
+const categoryEmojis = {
+  Produce: '🥦',
+  Meat: '🥩',
+  Dairy: '🧀',
+  Bakery: '🥖',
+  'Frozen Foods': '🧊',
+  Pantry: '🥫',
+  Beverages: '🥤',
+  Snacks: '🍪',
+  Other: '📦',
+};
+
 const List = () => {
   const [shoppingList, setShoppingList] = useState([]); // Holds shopping list items
   const [isModalVisible, setModalVisible] = useState(false); // Modal visibility
@@ -80,7 +92,7 @@ const List = () => {
         sections={sections}
         keyExtractor={(item) => item.id}
         renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.categoryHeader}>{title}</Text>
+          <Text style={styles.categoryHeader}>{`${categoryEmojis[title]} ${title}`}</Text>
         )}
         renderItem={({ item }) => (
           <TouchableOpacity
@@ -147,7 +159,9 @@ const List = () => {
               onPress={() => setCategoryDropdownVisible(true)}
               activeOpacity={0.7}
             >
-              <Text style={styles.dropdownButtonText}>{newItem.category}</Text>
+              <Text style={styles.dropdownButtonText}>
+                {`${categoryEmojis[newItem.category]} ${newItem.category}`}
+              </Text>
               <Text style={styles.dropdownArrow}>▼</Text>
             </TouchableOpacity>
 
@@ -175,7 +189,9 @@ const List = () => {
                         setCategoryDropdownVisible(false);
                       }}
                     >
-                      <Text style={styles.optionText}>{category}</Text>
+                      <Text style={styles.optionText}>
+                        {`${categoryEmojis[category]} ${category}`}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
