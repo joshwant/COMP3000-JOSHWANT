@@ -19,9 +19,10 @@ const categories = [
 const List = () => {
   const [shoppingList, setShoppingList] = useState([]); // Holds shopping list items
   const [isModalVisible, setModalVisible] = useState(false); // Modal visibility
-  const [newItem, setNewItem] = useState({ name: '', quantity: '', size: '', category: 'Other' }); // New item data
+  const [newItem, setNewItem] = useState({ name: '', quantity: '1', size: '', category: 'Other' }); // New item data
   const [menuVisible, setMenuVisible] = useState(false);
   const [categoryDropdownVisible, setCategoryDropdownVisible] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
   const auth = getAuth();
   const user = auth.currentUser;
@@ -41,13 +42,16 @@ const List = () => {
   // Add a new item to Firestore
   const handleAddItem = async () => {
     if (!user) return;
+    setIsAdding(true);
+
     const addedItem = await addShoppingListItem(newItem, user.uid);
 
     if (addedItem) {
       setShoppingList((prevList) => [...prevList, addedItem]);
-      setNewItem({ name: '', quantity: '', size: '', category: 'Other' });
+      setNewItem({ name: '', quantity: '1', size: '', category: 'Other' });
       setModalVisible(false);
     }
+    setIsAdding(false);
   };
 
   // Delete an item from Firestore
@@ -178,11 +182,21 @@ const List = () => {
               </TouchableOpacity>
             </Modal>
 
-            <TouchableOpacity style={styles.saveButton} onPress={handleAddItem}>
-              <Text style={styles.saveButtonText}>Add</Text>
+            <TouchableOpacity
+              style={[styles.saveButton, isAdding && { opacity: 0.6 }]}
+              onPress={handleAddItem}
+              disabled={isAdding}
+            >
+              <Text style={styles.saveButtonText}>
+                {isAdding ? 'Adding...' : 'Add'}
+              </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+            <TouchableOpacity
+              style={[styles.cancelButton, isAdding && { opacity: 0.6 }]}
+              onPress={() => setModalVisible(false)}
+              disabled={isAdding}
+            >
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
