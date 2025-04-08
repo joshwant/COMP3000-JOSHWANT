@@ -100,7 +100,7 @@ const List = () => {
           >
             <View style={{ flex: 1 }}>
               <Text style={styles.itemText}>
-                {item.name} - {item.quantity} ({item.size})
+                {item.quantity} x {item.name} {item.size ? `(${item.size})` : ''}
               </Text>
               {item.matchResult?.selected_candidate ? (
                 <Text style={styles.matchText}>
