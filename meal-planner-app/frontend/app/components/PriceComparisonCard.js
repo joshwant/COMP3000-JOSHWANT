@@ -2,6 +2,21 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 
 const PriceComparisonCard = ({ itemName, quantity, productName, productPrice, productImage, unitPrice, notFound }) => {
+
+    const getNumericPrice = (price) => {
+      if (!price) return 0;
+      if (price.includes('£')) {
+        return parseFloat(price.replace('£', ''));
+      } else if (price.includes('p')) {
+        return parseFloat(price.replace('p', '')) / 100;
+      }
+      return parseFloat(price);
+    };
+
+    const numericPrice = getNumericPrice(productPrice);
+    const numericQuantity = parseInt(quantity) || 1;
+    const extendedPrice = numericPrice * numericQuantity;
+
     return (
     <View style={styles.itemContainer}>
       <View style={styles.itemDetails}>
@@ -13,11 +28,15 @@ const PriceComparisonCard = ({ itemName, quantity, productName, productPrice, pr
         ) : (
           <View style={styles.productDetails}>
             <Text style={styles.productName}>{productName}</Text>
-            <Text style={styles.productPrice}>{productPrice}</Text>
+            <Text style={styles.productPrice}>£{extendedPrice.toFixed(2)}</Text>
           </View>
         )}
 
-        <Text style={styles.unitPrice}>{unitPrice}</Text>
+        {!notFound && (
+          <Text style={styles.unitPrice}>
+            {productPrice} each ({unitPrice})
+          </Text>
+        )}
 
         <View style={styles.actionButtons}>
           <TouchableOpacity style={styles.swapButton}>

@@ -129,13 +129,15 @@ const PriceComparison = () => {
   const totalPrice = comparisonItems.reduce((sum, item) => {
     if (!item.notFound && item.productPrice) {
       // Handle both "85p" and "£0.85" formats
-      let priceValue = 0;
-      if (item.productPrice.includes('£')) {
-        priceValue = parseFloat(item.productPrice.replace('£', '')) || 0;
-      } else if (item.productPrice.includes('p')) {
-        priceValue = parseFloat(item.productPrice.replace('p', '')) / 100 || 0;
+      const priceStr = String(item.productPrice);
+      let unit = 0;
+      if (priceStr.includes('£')) {
+        unit = parseFloat(priceStr.replace('£', '')) || 0;
+      } else if (priceStr.includes('p')) {
+        unit = parseFloat(priceStr.replace('p', '')) / 100 || 0;
       }
-      return sum + priceValue;
+      const qty = parseInt(item.quantity) || 1;
+      return sum + (unit * qty);
     }
     return sum;
   }, 0).toFixed(2);

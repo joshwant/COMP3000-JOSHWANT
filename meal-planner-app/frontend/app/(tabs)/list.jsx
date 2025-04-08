@@ -140,7 +140,7 @@ const List = () => {
 
             <TextInput
               style={styles.input}
-              placeholder="Size (e.g., 500g)"
+              placeholder="Size (e.g., 500g) (Optional)"
               placeholderTextColor="gray"
               value={newItem.size}
               onChangeText={(text) => setNewItem((prev) => ({ ...prev, size: text }))}
