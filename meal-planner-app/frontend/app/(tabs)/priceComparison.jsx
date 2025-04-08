@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Platform, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Platform, ActivityIndicator, RefreshControl } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import PriceComparisonCard from '../components/PriceComparisonCard';
 import { getAuth } from 'firebase/auth';
@@ -14,6 +14,7 @@ const PriceComparison = () => {
   const [shoppingList, setShoppingList] = useState([]);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   //Firebase Auth
   const auth = getAuth();
@@ -208,7 +209,18 @@ const PriceComparison = () => {
       {isLoading ? (
         <ActivityIndicator size="large" color="#00B21E" />
       ) : (
-        <ScrollView style={styles.scrollContainer}>
+        <ScrollView style={styles.scrollContainer}
+        refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={async () => {
+                setRefreshing(true);
+                await handleRefresh();
+                setRefreshing(false);
+              }}
+            />
+          }
+        >
         {comparisonItems.map((item, index) => (
           <PriceComparisonCard
             key={`${item.id}-${index}`}
