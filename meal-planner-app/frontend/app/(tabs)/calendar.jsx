@@ -255,8 +255,7 @@ const CalendarPage = () => {
   }, [meals]);
 
   const handleAddMeal = (date) => {
-    //need to add popup here and functionality
-    console.log('Add meal for:', date);
+    navigation.navigate('home');
   };
 
   const handleConfirmDelete = async () => {
