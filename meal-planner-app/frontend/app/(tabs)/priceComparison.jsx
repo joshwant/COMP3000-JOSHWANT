@@ -90,16 +90,39 @@ const PriceComparison = () => {
       // Use the matched product data if available
       if (shopItem.matchResult?.selected_candidate) {
         const candidate = shopItem.matchResult.selected_candidate;
-        const productImage = selectedStore === 'Tesco' ? candidate.tescoImageUrl : candidate.sainsburysImageUrl;
-        const unitPrice = selectedStore === 'Tesco' ? candidate.tescoPricePerUnit : candidate.sainsburysPricePerUnit;
+        // It will display the item in whichever store has the item,
+        // even if the other store doesn't have it
+        const storeData = selectedStore === 'Tesco'
+          ? {
+              name: candidate.tesco_name,
+              price: candidate.tesco_price,
+              image: candidate.tescoImageUrl,
+              unitPrice: candidate.tescoPricePerUnit,
+            }
+          : {
+              name: candidate.sainsburys_name,
+              price: candidate.sainsburys_price,
+              image: candidate.sainsburysImageUrl,
+              unitPrice: candidate.sainsburysPricePerUnit,
+            };
+
+        if (!storeData.name || !storeData.price) {
+          return {
+            id: shopItem.id,
+            itemName: shopItem.name,
+            quantity: shopItem.quantity,
+            notFound: true,
+          };
+        }
+
         return {
           id: shopItem.id,
           itemName: shopItem.name,
           quantity: shopItem.quantity,
-          productName: selectedStore === 'Tesco' ? candidate.tesco_name : candidate.sainsburys_name,
-          productPrice: selectedStore === 'Tesco' ? candidate.tesco_price : candidate.sainsburys_price,
-          productImage,
-          unitPrice,
+          productName: storeData.name,
+          productPrice: storeData.price,
+          productImage: storeData.image,
+          unitPrice: storeData.unitPrice,
           notFound: false,
         };
       }

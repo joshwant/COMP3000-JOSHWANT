@@ -231,7 +231,7 @@ app.post('/api/match-item', async (req, res) => {
 
         return res.json({
           success: true,
-          selected_candidate: fallbackCandidate,
+          selected_candidate: { selected_candidate: fallbackCandidate, confidence: 0.5 },
           confidence: 0.5
         });
       } else {
