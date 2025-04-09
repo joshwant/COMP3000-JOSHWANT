@@ -202,15 +202,50 @@ app.post('/api/match-item', async (req, res) => {
     const topCandidates = candidates.slice(0, 4); // Get top 4 matches
 
     if (topCandidates.length === 0 || topCandidates[0].score < 0.3) {
-      return res.json({
-        success: true,
-        selected_candidate: {
-          selected_candidate: null,
-          confidence: 0,
-          message: "No good match found"
-        },
-        confidence: 0.95
-      });
+      // Fallback: Search in Tesco and Sainsburys collections individually using the original itemName
+      const fallbackRegex = new RegExp(escapeRegex(itemName), 'i');
+
+      const [tescoProduct, sainsburysProduct] = await Promise.all([
+        TescoProduct.findOne({ name: fallbackRegex }).lean(),
+        SainsburysProduct.findOne({ name: fallbackRegex }).lean()
+      ]);
+
+      // If at least one product is found, build a fallback candidate object
+      if (tescoProduct || sainsburysProduct) {
+        const fallbackCandidate = {
+          generic_name: (tescoProduct && tescoProduct.generic_name) ||
+                          (sainsburysProduct && sainsburysProduct.generic_name) ||
+                          itemName,
+          tesco_name: tescoProduct ? tescoProduct.name : null,
+          sainsburys_name: sainsburysProduct ? sainsburysProduct.name : null,
+          tesco_price: tescoProduct ? tescoProduct.price : null,
+          sainsburys_price: sainsburysProduct ? sainsburysProduct.price : null,
+          tesco_quantity: tescoProduct ? tescoProduct.quantity : null,
+          sainsburys_quantity: sainsburysProduct ? sainsburysProduct.quantity : null,
+          tescoImageUrl: tescoProduct ? tescoProduct.imageUrl : null,
+          sainsburysImageUrl: sainsburysProduct ? sainsburysProduct.imageUrl : null,
+          // play around with this score
+          confidence: 0.5,
+          message: "Fallback match using individual store search"
+        };
+
+        return res.json({
+          success: true,
+          selected_candidate: fallbackCandidate,
+          confidence: 0.5
+        });
+      } else {
+        // If no fallback match is found, return a no-match response
+        return res.json({
+          success: true,
+          selected_candidate: {
+            selected_candidate: null,
+            confidence: 0,
+            message: "No good match found"
+          },
+          confidence: 0.95
+        });
+      }
     }
 
     // Get Mistral API response
