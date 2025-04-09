@@ -54,6 +54,12 @@ const List = () => {
   // Add a new item to Firestore
   const handleAddItem = async () => {
     if (!user) return;
+
+    if (!newItem.name.trim()) {
+      alert('Please enter a name for the item.');
+      return;
+    }
+
     setIsAdding(true);
 
     const addedItem = await addShoppingListItem(newItem, user.uid);
