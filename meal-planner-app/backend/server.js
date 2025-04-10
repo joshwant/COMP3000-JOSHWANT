@@ -35,7 +35,7 @@ setInterval(refreshCache, 6000000); // Refresh every 100 minutes
 
 // Normalize
 const normalizeName = (name) => name.toLowerCase()
-  .replace(/[^a-z0-9\s]/g, '')
+  .replace(/[^a-z0-9\s%]/g, '')
   .replace(/\b(favorite|favourite|tesco|sainsbury's|british|organic)\b/gi, '')
   .replace(/\s+/g, ' ')
   .trim();
@@ -63,7 +63,9 @@ const calculateScore = (normalizedQuery, product, queryQuantity) => {
   const queryTokens = normalizedQuery.split(' ');
   const productTokens = productName.split(' ');
 
-  const tokenOverlapCount = queryTokens.filter(token => productTokens.includes(token)).length;
+  const tokenOverlapCount = queryTokens.filter(token =>
+    productTokens.some(pt => pt.includes(token) || token.includes(pt))
+  ).length;
   const tokenScore = tokenOverlapCount / queryTokens.length;
 
   const fuzzyScore = stringSimilarity.compareTwoStrings(normalizedQuery, productName);
@@ -197,9 +199,9 @@ app.post('/api/match-item', async (req, res) => {
       return { ...product, score, id: `candidate${index + 1}` };
     });
 
-    // Sort candidates by score in descending order and take the top 4
+    // Sort candidates by score in descending order and take the top 5
     candidates.sort((a, b) => b.score - a.score);
-    const topCandidates = candidates.slice(0, 4); // Get top 4 matches
+    const topCandidates = candidates.slice(0, 5); // Get top 5 matches
 
     if (topCandidates.length === 0 || topCandidates[0].score < 0.3) {
       // Fallback: Search in Tesco and Sainsburys collections individually using the original itemName
@@ -290,4 +292,30 @@ app.listen(PORT, HOST, () => console.log(`Server running on http://0.0.0.0:${POR
 
 app.get('/test', (req, res) => {
   res.send('Server is working!');
+});
+
+app.get('/api/search-products', async (req, res) => {
+  try {
+    const { store, q } = req.query;
+    if (!store || !q) {
+      return res.status(400).json({ error: 'Missing store or query parameter' });
+    }
+    const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+    const regex = new RegExp(escapeRegex(q), 'i');
+
+    let collectionToSearch;
+    if (store.toLowerCase() === 'tesco') {
+      collectionToSearch = TescoProduct;
+    } else if (store.toLowerCase() === 'sainsburys') {
+      collectionToSearch = SainsburysProduct;
+    } else {
+      return res.status(400).json({ error: 'Invalid store specified' });
+    }
+
+    const products = await collectionToSearch.find({ name: regex }).lean();
+    return res.json({ products });
+  } catch (error) {
+    console.error('Error searching products:', error);
+    return res.status(500).json({ error: 'Server error' });
+  }
 });

@@ -16,6 +16,12 @@ const PriceComparison = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  //Switching item
+  const [swapModalVisible, setSwapModalVisible] = useState(false);
+  const [swapQuery, setSwapQuery] = useState('');
+  const [swapResults, setSwapResults] = useState([]);
+  const [itemToSwap, setItemToSwap] = useState(null);
+
   //Firebase Auth
   const auth = getAuth();
   const user = auth.currentUser;
