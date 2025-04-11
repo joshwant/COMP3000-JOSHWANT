@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-
-import {
-  View, Text, Modal, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, StyleSheet} from 'react-native';
+import {View, Text, Modal, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, StyleSheet} from 'react-native';
+import { AntDesign } from '@expo/vector-icons';
 
 const SwapItemModal = ({visible, onClose, selectedStore, currentItemName, onConfirmSwap, API_URL}) => {
   const [query, setQuery] = useState('');
@@ -39,6 +38,11 @@ const SwapItemModal = ({visible, onClose, selectedStore, currentItemName, onConf
     }
   };
 
+  const clearSearch = () => {
+    setQuery('');
+    setResults([]);
+  };
+
   return (
     <Modal
       visible={visible}
@@ -59,12 +63,11 @@ const SwapItemModal = ({visible, onClose, selectedStore, currentItemName, onConf
               onChangeText={setQuery}
               onSubmitEditing={searchAlternativeProducts}
             />
-            <TouchableOpacity
-              style={styles.searchButton}
-              onPress={searchAlternativeProducts}
-            >
-              <Text>Search</Text>
-            </TouchableOpacity>
+            {query.length > 0 && (
+              <TouchableOpacity onPress={clearSearch}>
+                <AntDesign name="close" size={20} color="gray" style={styles.clearIcon} />
+              </TouchableOpacity>
+            )}
           </View>
 
           {isSearching ? (
@@ -150,6 +153,10 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginRight: 10,
+  },
+  clearIcon: {
+    marginLeft: 10,
+    padding: 5,
   },
   searchButton: {
     justifyContent: 'center',
