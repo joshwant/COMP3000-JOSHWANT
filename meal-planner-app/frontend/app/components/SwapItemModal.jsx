@@ -56,9 +56,11 @@ const SwapItemModal = ({visible, onClose, selectedStore, currentItemName, onConf
           <Text style={styles.currentItemText}>Current: {currentItemName}</Text>
 
           <View style={styles.searchContainer}>
+            <AntDesign name="search1" size={20} color="gray" style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
               placeholder={`Search for alternatives`}
+              placeholderTextColor="gray"
               value={query}
               onChangeText={setQuery}
               onSubmitEditing={searchAlternativeProducts}
@@ -143,27 +145,27 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   searchContainer: {
+    marginBottom: 16,
     flexDirection: 'row',
-    marginBottom: 15,
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+  },
+  searchIcon: {
+    marginRight: 10,
   },
   searchInput: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-    padding: 10,
-    marginRight: 10,
+    padding: 8,
+    fontSize: 16,
+    color: 'black',
   },
   clearIcon: {
     marginLeft: 10,
     padding: 5,
-  },
-  searchButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 15,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 5,
   },
   resultsContainer: {
     marginBottom: 15,
