@@ -1,25 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
 import {
-  View,
-  Text,
-  Modal,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  ActivityIndicator,
-  StyleSheet
-} from 'react-native';
+  View, Text, Modal, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, StyleSheet} from 'react-native';
 
-const SwapItemModal = ({
-  visible,
-  onClose,
-  selectedStore,
-  currentItemName,
-  onConfirmSwap,
-  API_URL
-}) => {
+const SwapItemModal = ({visible, onClose, selectedStore, currentItemName, onConfirmSwap, API_URL}) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -29,7 +13,6 @@ const SwapItemModal = ({
     setIsSearching(true);
     try {
       const url = `${API_URL}/api/search-products?store=${encodeURIComponent(selectedStore)}&q=${encodeURIComponent(query)}`;
-      console.log("Attempting to fetch:", url);
 
       const response = await fetch(url, {
         headers: {
@@ -37,7 +20,6 @@ const SwapItemModal = ({
         }
       });
 
-      console.log("Response status:", response.status);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();

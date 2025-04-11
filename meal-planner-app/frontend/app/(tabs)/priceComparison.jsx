@@ -160,30 +160,62 @@ const PriceComparison = () => {
   };
 
   const handleConfirmSwap = async (selectedProduct) => {
-    if (!currentSwappingItem || !selectedProduct) return;
+    if (!currentSwappingItem || !selectedProduct) {
+      console.log('Missing currentSwappingItem or selectedProduct');
+      return;
+    }
+
+    console.log('Attempting to swap:', {
+      currentItem: currentSwappingItem,
+      selectedProduct: selectedProduct
+    });
 
     try {
+      const existingCandidate = currentSwappingItem.matchResult?.selected_candidate || {};
+
+      const updatedCandidate = {
+        ...existingCandidate,
+        generic_name: selectedProduct.generic_name || selectedProduct.name,
+        // Update the current store's data
+        [selectedStore.toLowerCase() === 'tesco' ? 'tesco_name' : 'sainsburys_name']: selectedProduct.name,
+        [selectedStore.toLowerCase() === 'tesco' ? 'tesco_price' : 'sainsburys_price']: selectedProduct.price,
+        [selectedStore.toLowerCase() === 'tesco' ? 'tescoImageUrl' : 'sainsburysImageUrl']: selectedProduct.imageUrl,
+        [selectedStore.toLowerCase() === 'tesco' ? 'tescoPricePerUnit' : 'sainsburysPricePerUnit']: selectedProduct.pricePerUnit,
+        // Set quantity - parse from name if not available
+        [selectedStore.toLowerCase() === 'tesco' ? 'tesco_quantity' : 'sainsburys_quantity']:
+          parseQuantityFromName(selectedProduct.name) || existingCandidate[selectedStore.toLowerCase() === 'tesco' ? 'tesco_quantity' : 'sainsburys_quantity'] || 1
+      };
+
       const updateData = {
         matchResult: {
-          selected_candidate: {
-            generic_name: selectedProduct.generic_name || selectedProduct.name,
-            [selectedStore.toLowerCase() === 'tesco' ? 'tesco_name' : 'sainsburys_name']: selectedProduct.name,
-            [selectedStore.toLowerCase() === 'tesco' ? 'tesco_price' : 'sainsburys_price']: selectedProduct.price,
-            [selectedStore.toLowerCase() === 'tesco' ? 'tesco_quantity' : 'sainsburys_quantity']: selectedProduct.quantity,
-            [selectedStore.toLowerCase() === 'tesco' ? 'tescoImageUrl' : 'sainsburysImageUrl']: selectedProduct.imageUrl,
-            [selectedStore.toLowerCase() === 'tesco' ? 'tescoPricePerUnit' : 'sainsburysPricePerUnit']: selectedProduct.pricePerUnit,
-            ...(currentSwappingItem.matchResult?.selected_candidate || {}),
-          },
+          selected_candidate: updatedCandidate,
           confidence: 1,
           message: "Manually selected by user"
         }
       };
 
+      console.log('Update data prepared:', updateData);
+
       const success = await updateShoppingListItem(currentSwappingItem.id, updateData);
-      if (success) await handleRefresh();
+
+      if (success) {
+        console.log('Swap successful, refreshing...');
+        await handleRefresh();
+      } else {
+        console.log('Swap failed (success=false)');
+      }
     } catch (error) {
-      console.error('Error swapping item:', error);
+      console.error('Error in handleConfirmSwap:', error);
     }
+  };
+
+  // Helper function to extract quantity from product name
+  const parseQuantityFromName = (name) => {
+    const quantityMatch = name.match(/(\d+)\s*(g|kg|ml|l)/i);
+    if (quantityMatch) {
+      return parseInt(quantityMatch[1], 10);
+    }
+    return null;
   };
 
   const totalPrice = comparisonItems.reduce((sum, item) => {
@@ -306,7 +338,6 @@ const PriceComparison = () => {
         onClose={() => {
           setSwapModalVisible(false);
           setCurrentSwappingItem(null);
-          console.log('Passing API_URL to SwapItemModal:', API_URL);
         }}
         selectedStore={selectedStore}
         currentItemName={currentSwappingItem?.itemName || ''}
