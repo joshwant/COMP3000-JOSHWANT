@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 
-const PriceComparisonCard = ({ itemName, quantity, productName, productPrice, productImage, unitPrice, notFound }) => {
+const PriceComparisonCard = ({ itemName, quantity, productName, productPrice, productImage, unitPrice, notFound, onSwapPress }) => {
 
     const getNumericPrice = (price) => {
       if (!price) return 0;
@@ -39,7 +39,7 @@ const PriceComparisonCard = ({ itemName, quantity, productName, productPrice, pr
         )}
 
         <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.swapButton}>
+          <TouchableOpacity style={styles.swapButton} onPress={onSwapPress}>
             <Text style={styles.swapButtonText}>↔ Swap Item</Text>
           </TouchableOpacity>
         </View>

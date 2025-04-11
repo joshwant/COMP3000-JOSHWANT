@@ -2,7 +2,9 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Platform, 
 import React, { useState, useEffect } from 'react'
 import PriceComparisonCard from '../components/PriceComparisonCard';
 import { getAuth } from 'firebase/auth';
-import { fetchShoppingList } from '../functions/shoppingFunctions';
+import { fetchShoppingList, updateShoppingListItem } from '../functions/shoppingFunctions';
+import { API_URL } from '../../config/config';
+import SwapItemModal from '../components/SwapItemModal';
 import { useCallback } from 'react';
 
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
@@ -15,12 +17,8 @@ const PriceComparison = () => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
-  //Switching item
   const [swapModalVisible, setSwapModalVisible] = useState(false);
-  const [swapQuery, setSwapQuery] = useState('');
-  const [swapResults, setSwapResults] = useState([]);
-  const [itemToSwap, setItemToSwap] = useState(null);
+  const [currentSwappingItem, setCurrentSwappingItem] = useState(null);
 
   //Firebase Auth
   const auth = getAuth();
@@ -155,6 +153,39 @@ const PriceComparison = () => {
     }
   }, [selectedStore]);
 
+  // Handle swap button press
+  const handleSwapPress = (item) => {
+    setCurrentSwappingItem(item);
+    setSwapModalVisible(true);
+  };
+
+  const handleConfirmSwap = async (selectedProduct) => {
+    if (!currentSwappingItem || !selectedProduct) return;
+
+    try {
+      const updateData = {
+        matchResult: {
+          selected_candidate: {
+            generic_name: selectedProduct.generic_name || selectedProduct.name,
+            [selectedStore.toLowerCase() === 'tesco' ? 'tesco_name' : 'sainsburys_name']: selectedProduct.name,
+            [selectedStore.toLowerCase() === 'tesco' ? 'tesco_price' : 'sainsburys_price']: selectedProduct.price,
+            [selectedStore.toLowerCase() === 'tesco' ? 'tesco_quantity' : 'sainsburys_quantity']: selectedProduct.quantity,
+            [selectedStore.toLowerCase() === 'tesco' ? 'tescoImageUrl' : 'sainsburysImageUrl']: selectedProduct.imageUrl,
+            [selectedStore.toLowerCase() === 'tesco' ? 'tescoPricePerUnit' : 'sainsburysPricePerUnit']: selectedProduct.pricePerUnit,
+            ...(currentSwappingItem.matchResult?.selected_candidate || {}),
+          },
+          confidence: 1,
+          message: "Manually selected by user"
+        }
+      };
+
+      const success = await updateShoppingListItem(currentSwappingItem.id, updateData);
+      if (success) await handleRefresh();
+    } catch (error) {
+      console.error('Error swapping item:', error);
+    }
+  };
+
   const totalPrice = comparisonItems.reduce((sum, item) => {
     if (!item.notFound && item.productPrice) {
       // Handle both "85p" and "£0.85" formats
@@ -262,10 +293,26 @@ const PriceComparison = () => {
             productImage={item.productImage}
             unitPrice={item.unitPrice}
             notFound={item.notFound}
+            onSwapPress={() => handleSwapPress(item)}
           />
         ))}
         </ScrollView>
       )}
+
+      <SwapItemModal
+        visible={swapModalVisible}
+        transparent={true}
+        animationType="fade"
+        onClose={() => {
+          setSwapModalVisible(false);
+          setCurrentSwappingItem(null);
+          console.log('Passing API_URL to SwapItemModal:', API_URL);
+        }}
+        selectedStore={selectedStore}
+        currentItemName={currentSwappingItem?.itemName || ''}
+        onConfirmSwap={handleConfirmSwap}
+        API_URL={API_URL}
+      />
 
       <View style={styles.footer}>
         <View style={styles.totalPriceContainer}>

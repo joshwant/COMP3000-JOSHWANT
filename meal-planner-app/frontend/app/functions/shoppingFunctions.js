@@ -1,8 +1,9 @@
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 
+import { API_URL } from '../../config/config';
 //const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.0.173:5000';
+//const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.0.173:5000';
 
 // Fetch shopping list from Firestore
 export const fetchShoppingList = async (userId) => {
@@ -70,6 +71,19 @@ export const deleteShoppingListItem = async (itemId) => {
     return true;
   } catch (error) {
     console.error(`Error deleting item with ID ${itemId}:`, error);
+    return false;
+  }
+};
+
+// Update item in Firestore
+export const updateShoppingListItem = async (itemId, updateData) => {
+  try {
+    const itemRef = doc(db, 'shoppingLists', itemId);
+    await updateDoc(itemRef, updateData);
+    console.log(`Item with ID ${itemId} updated successfully.`);
+    return true;
+  } catch (error) {
+    console.error(`Error updating item with ID ${itemId}:`, error);
     return false;
   }
 };
