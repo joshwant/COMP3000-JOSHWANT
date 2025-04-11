@@ -54,7 +54,7 @@ const SwapItemModal = ({visible, onClose, selectedStore, currentItemName, onConf
           <View style={styles.searchContainer}>
             <TextInput
               style={styles.searchInput}
-              placeholder={`Search for alternatives at ${selectedStore}...`}
+              placeholder={`Search for alternatives`}
               value={query}
               onChangeText={setQuery}
               onSubmitEditing={searchAlternativeProducts}
@@ -71,26 +71,32 @@ const SwapItemModal = ({visible, onClose, selectedStore, currentItemName, onConf
             <ActivityIndicator size="large" color="#00B21E" />
           ) : (
             <ScrollView style={styles.resultsContainer}>
-              {results.map((product, index) => (
-                <TouchableOpacity
-                  key={`${index}_${product.name}`}
-                  style={styles.productItem}
-                  onPress={async () => {
-                    await onConfirmSwap(product);
-                    onClose();
-                  }}
-                >
-                  <Image
-                    source={{ uri: product.imageUrl }}
-                    style={styles.productThumbnail}
-                  />
-                  <View style={styles.productInfo}>
-                    <Text style={styles.productName} numberOfLines={2}>{product.name}</Text>
-                    <Text style={styles.productPrice}>{product.price}</Text>
-                    <Text style={styles.productUnitPrice}>{product.pricePerUnit}</Text>
+              {results.length > 0 ? (
+                  results.map((product, index) => (
+                    <TouchableOpacity
+                      key={`${index}_${product.name}`}
+                      style={styles.productItem}
+                      onPress={async () => {
+                        await onConfirmSwap(product);
+                        onClose();
+                      }}
+                    >
+                      <Image
+                        source={{ uri: product.imageUrl }}
+                        style={styles.productThumbnail}
+                      />
+                      <View style={styles.productInfo}>
+                        <Text style={styles.productName} numberOfLines={2}>{product.name}</Text>
+                        <Text style={styles.productPrice}>{product.price}</Text>
+                        <Text style={styles.productUnitPrice}>{product.pricePerUnit}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <View style={styles.noResultsContainer}>
+                    <Text style={styles.noResultsText}>No products found</Text>
                   </View>
-                </TouchableOpacity>
-              ))}
+                )}
             </ScrollView>
           )}
 
@@ -116,19 +122,20 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '90%',
     backgroundColor: 'white',
-    borderRadius: 10,
+    borderRadius: 8,
     padding: 20,
     maxHeight: '80%',
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 14,
     textAlign: 'center',
+    color: 'black',
   },
   currentItemText: {
     fontSize: 16,
-    marginBottom: 15,
+    marginBottom: 14,
     textAlign: 'center',
     color: '#666',
   },
@@ -190,6 +197,17 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: '#333',
     fontWeight: 'bold',
+  },
+  noResultsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  noResultsText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
 });
 

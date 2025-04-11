@@ -185,7 +185,6 @@ const PriceComparison = () => {
         "matchResult.message": "Manually selected by user"
       };
 
-      console.log('Final update data:', JSON.stringify(updateData, null, 2));
       const success = await updateShoppingListItem(currentSwappingItem.id, updateData);
 
       if (success) {
