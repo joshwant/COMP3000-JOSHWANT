@@ -164,26 +164,19 @@ const PriceComparison = () => {
       console.log('Missing currentSwappingItem or selectedProduct');
       return;
     }
-
-    console.log('Attempting to swap:', {
-      currentItem: currentSwappingItem,
-      selectedProduct: selectedProduct
-    });
-
     try {
+      const targetStore = selectedStore === 'Tesco' ? 'tesco' : "sainsburys";
       const existingCandidate = currentSwappingItem.matchResult?.selected_candidate || {};
 
       const updatedCandidate = {
         ...existingCandidate,
         generic_name: selectedProduct.generic_name || selectedProduct.name,
-        // Update the current store's data
-        [selectedStore.toLowerCase() === 'tesco' ? 'tesco_name' : 'sainsburys_name']: selectedProduct.name,
-        [selectedStore.toLowerCase() === 'tesco' ? 'tesco_price' : 'sainsburys_price']: selectedProduct.price,
-        [selectedStore.toLowerCase() === 'tesco' ? 'tescoImageUrl' : 'sainsburysImageUrl']: selectedProduct.imageUrl,
-        [selectedStore.toLowerCase() === 'tesco' ? 'tescoPricePerUnit' : 'sainsburysPricePerUnit']: selectedProduct.pricePerUnit,
-        // Set quantity - parse from name if not available
-        [selectedStore.toLowerCase() === 'tesco' ? 'tesco_quantity' : 'sainsburys_quantity']:
-          parseQuantityFromName(selectedProduct.name) || existingCandidate[selectedStore.toLowerCase() === 'tesco' ? 'tesco_quantity' : 'sainsburys_quantity'] || 1
+        // Update the current stores data
+        [`${targetStore}_name`]: selectedProduct.name,
+        [`${targetStore}_price`]: selectedProduct.price,
+        [`${targetStore}ImageUrl`]: selectedProduct.imageUrl,
+        [`${targetStore}PricePerUnit`]: selectedProduct.pricePerUnit,
+        [`${targetStore}_quantity`]: parseQuantityFromName(selectedProduct.name) || 1
       };
 
       const updateData = {
@@ -193,8 +186,6 @@ const PriceComparison = () => {
           message: "Manually selected by user"
         }
       };
-
-      console.log('Update data prepared:', updateData);
 
       const success = await updateShoppingListItem(currentSwappingItem.id, updateData);
 

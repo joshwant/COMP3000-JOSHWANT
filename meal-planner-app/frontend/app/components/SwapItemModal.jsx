@@ -12,7 +12,9 @@ const SwapItemModal = ({visible, onClose, selectedStore, currentItemName, onConf
     if (!query.trim()) return;
     setIsSearching(true);
     try {
-      const url = `${API_URL}/api/search-products?store=${encodeURIComponent(selectedStore)}&q=${encodeURIComponent(query)}`;
+      const searchStore = selectedStore === 'Tesco' ? 'tesco' : "sainsburys";
+      const url = `${API_URL}/api/search-products?store=${searchStore}&q=${encodeURIComponent(query)}`;
+      console.log("Searching in store:", searchStore);
 
       const response = await fetch(url, {
         headers: {
