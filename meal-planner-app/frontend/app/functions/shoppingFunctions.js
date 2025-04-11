@@ -79,11 +79,15 @@ export const deleteShoppingListItem = async (itemId) => {
 export const updateShoppingListItem = async (itemId, updateData) => {
   try {
     const itemRef = doc(db, 'shoppingLists', itemId);
-    await updateDoc(itemRef, updateData);
-    console.log(`Item with ID ${itemId} updated successfully.`);
+
+    await updateDoc(itemRef, {
+      ...updateData,
+      "matchResult.lastUpdated": new Date()
+    });
+
     return true;
   } catch (error) {
-    console.error(`Error updating item with ID ${itemId}:`, error);
+    console.error('Update error:', error);
     return false;
   }
 };

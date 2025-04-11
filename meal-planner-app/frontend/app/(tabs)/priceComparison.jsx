@@ -138,7 +138,7 @@ const PriceComparison = () => {
       };
     }));
 
-    // Sort updated items with unmatched ones at the top
+    // Sort updated items with unmatched ones at top
     const sortedUpdated = updatedItems.sort((a, b) => {
       if (a.notFound === b.notFound) return 0;
       return a.notFound ? -1 : 1;
@@ -160,18 +160,18 @@ const PriceComparison = () => {
   };
 
   const handleConfirmSwap = async (selectedProduct) => {
-    if (!currentSwappingItem || !selectedProduct) {
-      console.log('Missing currentSwappingItem or selectedProduct');
-      return;
-    }
+    if (!currentSwappingItem || !selectedProduct) return;
+
     try {
-      const targetStore = selectedStore === 'Tesco' ? 'tesco' : "sainsburys";
-      const existingCandidate = currentSwappingItem.matchResult?.selected_candidate || {};
+      const targetStore = selectedStore.toLowerCase() === 'tesco' ? 'tesco' : 'sainsburys';
+
+      // ALWAYS get fresh data from Firestore snapshot
+      const freshItem = shoppingList.find(item => item.id === currentSwappingItem.id);
+      const existingCandidate = freshItem?.matchResult?.selected_candidate || {};
 
       const updatedCandidate = {
-        ...existingCandidate,
+        ...existingCandidate, //Preserve existing data
         generic_name: selectedProduct.generic_name || selectedProduct.name,
-        // Update the current stores data
         [`${targetStore}_name`]: selectedProduct.name,
         [`${targetStore}_price`]: selectedProduct.price,
         [`${targetStore}ImageUrl`]: selectedProduct.imageUrl,
@@ -180,33 +180,36 @@ const PriceComparison = () => {
       };
 
       const updateData = {
-        matchResult: {
-          selected_candidate: updatedCandidate,
-          confidence: 1,
-          message: "Manually selected by user"
-        }
+        "matchResult.selected_candidate": updatedCandidate,
+        "matchResult.confidence": 1,
+        "matchResult.message": "Manually selected by user"
       };
 
+      console.log('Final update data:', JSON.stringify(updateData, null, 2));
       const success = await updateShoppingListItem(currentSwappingItem.id, updateData);
 
       if (success) {
-        console.log('Swap successful, refreshing...');
         await handleRefresh();
-      } else {
-        console.log('Swap failed (success=false)');
       }
     } catch (error) {
-      console.error('Error in handleConfirmSwap:', error);
+      console.error('Swap error:', error);
     }
   };
 
   // Helper function to extract quantity from product name
   const parseQuantityFromName = (name) => {
-    const quantityMatch = name.match(/(\d+)\s*(g|kg|ml|l)/i);
-    if (quantityMatch) {
-      return parseInt(quantityMatch[1], 10);
-    }
-    return null;
+    // Match patterns like "500g", "1kg", "30 Pack", "4 each"
+    const match = name.match(/([\d.]+)\s*(g|kg|ml|l|pack|each|pouch|bag)\b/i);
+    if (!match) return 1;
+
+    let quantity = parseFloat(match[1]);
+    const unit = match[2].toLowerCase();
+
+    // Convert to grams/ml
+    if (unit === 'kg') quantity *= 1000;
+    if (unit === 'l') quantity *= 1000;
+
+    return Math.round(quantity);
   };
 
   const totalPrice = comparisonItems.reduce((sum, item) => {
