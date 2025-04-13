@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {View, Text, Modal, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, StyleSheet} from 'react-native';
+import {View, Text, Modal, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, StyleSheet, Keyboard} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 
 const SwapItemModal = ({visible, onClose, selectedStore, currentItemName, onConfirmSwap, API_URL}) => {
@@ -8,7 +8,10 @@ const SwapItemModal = ({visible, onClose, selectedStore, currentItemName, onConf
   const [isSearching, setIsSearching] = useState(false);
 
   const searchAlternativeProducts = async () => {
-    if (!query.trim()) return;
+    if (query.trim().length < 3) return;
+
+    Keyboard.dismiss();
+
     setIsSearching(true);
     try {
       const searchStore = selectedStore.toLowerCase() === 'tesco' ? 'tesco' : "sainsburys";
@@ -41,6 +44,7 @@ const SwapItemModal = ({visible, onClose, selectedStore, currentItemName, onConf
   const clearSearch = () => {
     setQuery('');
     setResults([]);
+    Keyboard.dismiss();
   };
 
   return (
@@ -99,7 +103,9 @@ const SwapItemModal = ({visible, onClose, selectedStore, currentItemName, onConf
                   ))
                 ) : (
                   <View style={styles.noResultsContainer}>
-                    <Text style={styles.noResultsText}>No products found</Text>
+                    <Text style={styles.noResultsText}>
+                      {query.length > 0 ? 'No products found' : 'Search for alternatives'}
+                    </Text>
                   </View>
                 )}
             </ScrollView>
