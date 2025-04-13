@@ -68,12 +68,23 @@ const SwapItemModal = ({visible, onClose, selectedStore, currentItemName, onConf
               value={query}
               onChangeText={setQuery}
               onSubmitEditing={searchAlternativeProducts}
+              returnKeyType="search"
             />
             {query.length > 0 && (
               <TouchableOpacity onPress={clearSearch}>
                 <AntDesign name="close" size={20} color="gray" style={styles.clearIcon} />
               </TouchableOpacity>
             )}
+            <TouchableOpacity
+              style={[
+                styles.searchButton,
+                query.trim().length < 3 && styles.disabledButton
+              ]}
+              onPress={searchAlternativeProducts}
+              disabled={query.trim().length < 3}
+            >
+              <Text style={styles.searchButtonText}>Search</Text>
+            </TouchableOpacity>
           </View>
 
           {isSearching ? (
@@ -158,10 +169,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'gray',
     borderRadius: 8,
-    paddingHorizontal: 10,
-  },
-  searchIcon: {
-    marginRight: 10,
+    paddingHorizontal: 2,
+    paddingLeft: 10,
   },
   searchInput: {
     flex: 1,
@@ -172,6 +181,21 @@ const styles = StyleSheet.create({
   clearIcon: {
     marginLeft: 10,
     padding: 5,
+  },
+  searchButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#00B21E',
+    borderRadius: 8,
+    justifyContent: 'center',
+  },
+  disabledButton: {
+    color: 'white',
+    backgroundColor: '#ccc',
+  },
+  searchButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   resultsContainer: {
     marginBottom: 15,
