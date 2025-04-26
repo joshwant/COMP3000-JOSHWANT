@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Pressable, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput, Alert, Image } from 'react-native';
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
@@ -57,7 +57,7 @@ const Login = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.logoPlaceholder} />
+        <Image source={require('../assets/mainlogo.png')} style={styles.logo} />
 
         <Text style={styles.welcomeText}>Login to</Text>
         <Text style={styles.prepit}>PrepIt</Text>
@@ -117,11 +117,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  logoPlaceholder: {
+  logo: {
     width: 100,
     height: 100,
-    backgroundColor: '#ccc',
-    borderRadius: 50,
     marginBottom: 10,
   },
   welcomeText: {
