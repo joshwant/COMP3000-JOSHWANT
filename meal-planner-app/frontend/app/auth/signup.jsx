@@ -22,13 +22,19 @@ const Signup = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Sign Up</Text>
+      <View style={styles.header}>
+        <View style={styles.logoPlaceholder} />
+
+        <Text style={styles.welcomeText}>Sign Up to</Text>
+        <Text style={styles.prepit}>PrepIt</Text>
+      </View>
 
       <TextInput
         style={styles.input}
         placeholder="Enter your email"
         value={email}
         onChangeText={setEmail}
+        placeholderTextColor="gray"
       />
       <TextInput
         style={styles.input}
@@ -36,15 +42,24 @@ const Signup = () => {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        placeholderTextColor="gray"
       />
 
-      <Pressable style={styles.button} onPress={handleSignUp}>
+      <Pressable style={styles.signupButton} onPress={handleSignUp}>
         <Text style={styles.buttonText}>Sign Up</Text>
       </Pressable>
 
-      <Pressable style={styles.button} onPress={() => navigation.navigate('login')}>
-        <Text style={styles.buttonText}>Already have an account? Log In</Text>
-      </Pressable>
+      <View style={styles.loginContainer}>
+        <Text style={styles.loginText}>
+          Already have an account?{' '}
+          <Text
+            style={styles.loginLink}
+            onPress={() => navigation.navigate('login')}
+          >
+            Log In
+          </Text>
+        </Text>
+      </View>
     </View>
   );
 };
@@ -58,12 +73,26 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 20,
   },
-  text: {
-    color: 'black',
-    fontSize: 42,
+  header: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logoPlaceholder: {
+    width: 100,
+    height: 100,
+    backgroundColor: '#ccc',
+    borderRadius: 50,
+    marginBottom: 10,
+  },
+  welcomeText: {
+    fontSize: 20,
+    color: 'gray',
+  },
+  prepit: {
+    fontSize: 38,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 40,
+    color: 'black',
+    marginBottom: 20,
   },
   input: {
     height: 50,
@@ -74,12 +103,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     fontSize: 16,
   },
-  button: {
+  signupButton: {
     height: 60,
     borderRadius: 20,
     justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.75)',
-    padding: 6,
+    alignItems: 'center',
+    backgroundColor: '#00B21E',
     marginBottom: 20,
   },
   buttonText: {
@@ -88,5 +117,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     padding: 4,
+  },
+  loginContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  loginText: {
+    fontSize: 14,
+    color: 'gray',
+  },
+  loginLink: {
+    fontSize: 14,
+    color: '#00B21E',
+    fontWeight: 'bold',
   },
 });
