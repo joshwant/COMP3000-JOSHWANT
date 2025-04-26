@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 
@@ -7,7 +7,12 @@ const Welcome = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Welcome</Text>
+      <View style={styles.header}>
+        <Image source={require('../assets/mainlogo.png')} style={styles.logo} />
+
+        <Text style={styles.welcomeText}>Welcome to</Text>
+        <Text style={styles.prepit}>PrepIt</Text>
+      </View>
 
       <Pressable style={styles.button} onPress={() => navigation.navigate('signup')}>
         <Text style={styles.buttonText}>Sign Up</Text>
@@ -23,33 +28,57 @@ const Welcome = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'column',
-    backgroundColor: 'white',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    padding: 20,
   },
-  text: {
-    color: 'white',
-    fontSize: 42,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    marginBottom: 120,
+  header: {
+    alignItems: 'center',
+    marginBottom: 20,
     marginTop: 40,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    marginBottom: 10,
+  },
+  welcomeText: {
+    fontSize: 24,
+    color: 'gray',
+  },
+  prepit: {
+    fontSize: 44,
+    fontWeight: 'bold',
+    color: 'black',
+    marginBottom: 20,
+  },
+  buttonContainer: {
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   button: {
     height: 60,
+    width: '80%',
     borderRadius: 20,
     justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.75)',
-    padding: 6,
-    marginBottom: 20,
+    alignItems: 'center',
+    backgroundColor: '#00B21E',
+    marginBottom: 15,
+    shadowColor: 'black',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  loginButton: {
+    backgroundColor: '#2C3E50',
   },
   buttonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
-    padding: 4,
-  }
+  },
 });
 
 export default Welcome;
