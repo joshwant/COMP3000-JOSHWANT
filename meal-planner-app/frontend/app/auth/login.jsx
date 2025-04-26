@@ -56,7 +56,12 @@ const Login = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Login</Text>
+      <View style={styles.header}>
+        <View style={styles.logoPlaceholder} />
+
+        <Text style={styles.welcomeText}>Login to</Text>
+        <Text style={styles.prepit}>PrepIt</Text>
+      </View>
 
       <TextInput
         style={styles.input}
@@ -65,6 +70,7 @@ const Login = () => {
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
+        placeholderTextColor="gray"
       />
       <TextInput
         style={styles.input}
@@ -72,19 +78,28 @@ const Login = () => {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        placeholderTextColor="gray"
       />
 
       <Pressable
-        style={[styles.button, loading && styles.disabledButton]}
+        style={[styles.loginButton, loading && styles.disabledButton]}
         onPress={handleLogin}
         disabled={loading}
       >
         <Text style={styles.buttonText}>{loading ? 'Logging in...' : 'Login'}</Text>
       </Pressable>
 
-      <Pressable style={styles.button} onPress={() => navigation.navigate('signup')}>
-        <Text style={styles.buttonText}>Don't have an account? Sign Up</Text>
-      </Pressable>
+      <View style={styles.signupContainer}>
+        <Text style={styles.signupText}>
+          Don't have an account?{' '}
+          <Text
+            style={styles.signupLink}
+            onPress={() => navigation.navigate('signup')}
+          >
+            Sign up
+          </Text>
+        </Text>
+      </View>
     </View>
   );
 };
@@ -97,6 +112,33 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: 'white',
     padding: 20,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logoPlaceholder: {
+    width: 100,
+    height: 100,
+    backgroundColor: '#ccc',
+    borderRadius: 50,
+    marginBottom: 10,
+  },
+  welcomeText: {
+    fontSize: 20,
+    color: 'gray',
+  },
+  prepit: {
+    fontSize: 38,
+    fontWeight: 'bold',
+    color: 'black',
+    marginBottom: 20,
+  },
+  loginText: {
+    color: 'black',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
   text: {
     color: 'black',
@@ -113,13 +155,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 10,
     fontSize: 16,
+    color: 'gray',
   },
-  button: {
+  loginButton: {
     height: 60,
     borderRadius: 20,
     justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.75)',
-    padding: 6,
+    alignItems: 'center',
+    backgroundColor: '#00B21E',
     marginBottom: 20,
   },
   buttonText: {
@@ -128,6 +171,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     padding: 4,
+  },
+  signupContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  signupText: {
+    fontSize: 14,
+    color: 'gray',
+  },
+  signupLink: {
+    fontSize: 14,
+    color: '#00B21E',
+    fontWeight: 'bold',
   },
   disabledButton: {
     opacity: 0.5,
