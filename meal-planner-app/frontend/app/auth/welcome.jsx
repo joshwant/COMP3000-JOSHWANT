@@ -14,13 +14,14 @@ const Welcome = () => {
         <Text style={styles.prepit}>PrepIt</Text>
       </View>
 
+      <Pressable style={styles.button} onPress={() => navigation.navigate('login')}>
+        <Text style={styles.buttonText}>Login</Text>
+      </Pressable>
+
       <Pressable style={styles.button} onPress={() => navigation.navigate('signup')}>
         <Text style={styles.buttonText}>Sign Up</Text>
       </Pressable>
 
-      <Pressable style={styles.button} onPress={() => navigation.navigate('login')}>
-        <Text style={styles.buttonText}>Login</Text>
-      </Pressable>
     </View>
   );
 };
