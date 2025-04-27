@@ -30,6 +30,7 @@ That simplifies meal planning, generates AI-powered price comparisons based on s
 - Install Expo Go on your mobile device
 - Clone the repository
 - Get and add your API and database keys to the .env files
+- Change your IP address in the backend server.js file to your local IP address
 - Open the terminal and navigate to the project directory
 ### Start the backend server:
 - Navigate to the backend directory
