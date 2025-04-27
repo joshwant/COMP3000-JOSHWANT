@@ -12,13 +12,16 @@ const Welcome = () => {
 
         <Text style={styles.welcomeText}>Welcome to</Text>
         <Text style={styles.prepit}>PrepIt</Text>
+        <Text style={styles.subText}>
+          Discover recipes, plan your meals, and shop smart with PrepIt!
+        </Text>
       </View>
 
       <Pressable style={styles.button} onPress={() => navigation.navigate('login')}>
         <Text style={styles.buttonText}>Login</Text>
       </Pressable>
 
-      <Pressable style={styles.button} onPress={() => navigation.navigate('signup')}>
+      <Pressable style={[styles.button, styles.signupButton]} onPress={() => navigation.navigate('signup')}>
         <Text style={styles.buttonText}>Sign Up</Text>
       </Pressable>
 
@@ -31,11 +34,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     backgroundColor: '#ffffff',
-    padding: 20,
+    paddingHorizontal: 20,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 30,
     marginTop: 40,
   },
   logo: {
@@ -45,13 +48,19 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 24,
-    color: 'gray',
+    color: 'black',
   },
   prepit: {
-    fontSize: 44,
+    fontSize: 48,
     fontWeight: 'bold',
-    color: 'black',
-    marginBottom: 20,
+    color: '#00B21E',
+    marginBottom: 10,
+  },
+  subText: {
+    fontSize: 18,
+    color: '#555',
+    textAlign: 'center',
+    marginHorizontal: 20,
   },
   buttonContainer: {
     width: '100%',
@@ -71,7 +80,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
-  loginButton: {
+  signupButton: {
     backgroundColor: '#2C3E50',
   },
   buttonText: {
