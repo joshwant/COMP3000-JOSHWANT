@@ -1,8 +1,8 @@
-# AI-Powered Smart Shopping and Meal Planning App
+# PrepIt - Meal Planning and AI-Powered Price Comparison Mobile App
 ## Allocated Supervisor
 Bogdan Ghita
 
-## Project Vision
+## Project Summary
 For busy individuals and families. <br>
 Whose problem is their lack of time to meal plan and are stressed, unorganised, and/or want to cut down on meal costs. <br>
 The AI-Powered Meal Planning and Smart Shopping App <br>
