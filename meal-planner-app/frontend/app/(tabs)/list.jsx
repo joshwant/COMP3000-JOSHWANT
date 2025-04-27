@@ -138,19 +138,19 @@ const List = () => {
 
             <TextInput
               style={styles.input}
-              placeholder="Name (e.g., Mince)"
+              placeholder="Name (e.g., Mince 5% fat 500g)"
               placeholderTextColor="gray"
               value={newItem.name}
               onChangeText={(text) => setNewItem((prev) => ({ ...prev, name: text }))}
             />
 
-            <TextInput
-              style={styles.input}
-              placeholder="Size (e.g., 500g) (Optional)"
-              placeholderTextColor="gray"
-              value={newItem.size}
-              onChangeText={(text) => setNewItem((prev) => ({ ...prev, size: text }))}
-            />
+{/*             <TextInput */}
+{/*               style={styles.input} */}
+{/*               placeholder="Size (e.g., 500g) (Optional)" */}
+{/*               placeholderTextColor="gray" */}
+{/*               value={newItem.size} */}
+{/*               onChangeText={(text) => setNewItem((prev) => ({ ...prev, size: text }))} */}
+{/*             /> */}
 
             <View style={styles.quantityContainer}>
               <Text style={styles.quantityLabel}>Quantity</Text>

@@ -25,6 +25,11 @@ const ProductMapping = mainConnection.model('ProductMapping', new mongoose.Schem
 const TescoProduct = tescoConnection.model('TescoProduct', new mongoose.Schema({}, { strict: false }), 'products');
 const SainsburysProduct = sainsburysConnection.model('SainsburysProduct', new mongoose.Schema({}, { strict: false }), 'products');
 
+//Manual mappings connection
+const manualMappingsConnection = mongoose.createConnection(process.env.MONGODB_URI_MANUAL_MAPPINGS, { useNewUrlParser: true });
+const ManualMapping = manualMappingsConnection.model('ManualMapping', new mongoose.Schema({}, { strict: false }), 'manualProductMappings');
+
+
 let productCache = [];
 const refreshCache = async () => {
   productCache = await ProductMapping.find().lean();
@@ -187,6 +192,40 @@ app.post('/api/match-item', async (req, res) => {
     const { itemName } = req.body;
     const { normalized, quantity } = normalizeAndExtract(itemName);
 
+    const manualMapping = await ManualMapping.findOne({ 'queries': { $in: [normalized] } }).lean();
+
+    if (manualMapping) {
+      console.log('Manual mapping found for:', itemName, manualMapping);
+
+      const selected = {
+        generic_name: manualMapping.generic_name,
+
+        // Tesco fields
+        tesco_name: manualMapping.tesco.name,
+        tesco_price: manualMapping.tesco.price,
+        tesco_quantity: manualMapping.tesco.quantity || 1,
+        tescoImageUrl: manualMapping.tesco.imageUrl,
+        tescoPricePerUnit: manualMapping.tesco.pricePerUnit,
+
+        // Sainsbury’s fields
+        sainsburys_name: manualMapping.sainsburys.name,
+        sainsburys_price: manualMapping.sainsburys.price,
+        sainsburys_quantity: manualMapping.sainsburys.quantity || 1,
+        sainsburysImageUrl: manualMapping.sainsburys.imageUrl,
+        sainsburysPricePerUnit: manualMapping.sainsburys.pricePerUnit,
+      };
+
+      return res.json({
+        success: true,
+        selected_candidate: {
+          selected_candidate: selected,
+          confidence: manualMapping.confidence || 1.0,
+          message: manualMapping.message || "Manual mapping"
+        },
+        confidence: manualMapping.confidence || 1.0
+      });
+    }
+
     // Check if productCache is properly populated
     if (!productCache || productCache.length === 0) {
       console.error('No products found in productCache');
@@ -317,5 +356,77 @@ app.get('/api/search-products', async (req, res) => {
   } catch (error) {
     console.error('Error searching products:', error);
     return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+//ADMIN BACKEND dont add to frontend
+app.post('/api/admin/test-create', async (req, res) => {
+  try {
+    //dummy entry
+    const dummyEntry = new ManualMapping({
+      testField: 'Hello from the new database!',
+      createdAt: new Date()
+    });
+
+    await dummyEntry.save();
+
+    res.status(201).json({ success: true, message: 'Dummy entry created in new database.' });
+  } catch (error) {
+    console.error('Error creating dummy entry:', error);
+    res.status(500).json({ success: false, error: 'Failed to create dummy entry' });
+  }
+});
+
+// Create a new manual mapping
+app.post('/api/admin/manual-mappings', async (req, res) => {
+  try {
+    const newMapping = new ManualMapping(req.body);
+    await newMapping.save();
+    return res.status(201).json({ success: true });
+  } catch (err) {
+    console.error('Error saving manual mapping:', err);
+    res.status(500).json({ error: "Failed to save mapping" });
+  }
+});
+
+// Get all manual mappings
+app.get('/api/admin/manual-mappings', async (req, res) => {
+  try {
+    const mappings = await ManualMapping.find({}).lean();
+    return res.status(200).json(mappings);
+  } catch (err) {
+    console.error('Error fetching manual mappings:', err);
+    res.status(500).json({ error: "Failed to fetch mappings" });
+  }
+});
+
+// Search Tesco or Sainsburys products
+app.get('/api/admin/products/search', async (req, res) => {
+  try {
+    const { store, q } = req.query;
+    if (!store || !q) {
+      return res.status(400).json({ error: 'Missing store or query parameter' });
+    }
+
+    let collectionToSearch;
+    let sainsburysResults = [];
+    if (store.toLowerCase() === 'tesco') {
+      collectionToSearch = TescoProduct;
+    } else if (store.toLowerCase() === 'sainsburys') {
+      collectionToSearch = SainsburysProduct;
+    } else {
+      return res.status(400).json({ error: 'Invalid store specified' });
+    }
+
+    const regex = new RegExp(q, 'i');
+    const results = await collectionToSearch.find({ name: regex }).limit(50).lean();
+
+    console.log('Results found: ', results);
+
+    return res.status(200).json(results);
+  } catch (err) {
+    console.error('Error searching products:', err);
+    res.status(500).json({ error: "Failed to search products" });
   }
 });

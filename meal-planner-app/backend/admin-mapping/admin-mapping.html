@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Product Manual Mapping</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { margin-bottom: 20px; }
+        .btn { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        .btn:disabled { background-color: #ccc; }
+        select, input { width: 100%; padding: 10px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+<h1>Admin Product Manual Mapping</h1>
+
+<div class="container">
+    <label for="search-term">Search Term (e.g., "apple")</label>
+    <input type="text" id="search-term" placeholder="Enter product name">
+    <button class="btn" id="search-btn" onclick="searchProducts()">Search</button>
+</div>
+
+<div id="tesco-container" class="container" style="display:none;">
+    <h3>Pick a product from Tesco</h3>
+    <select id="tesco-select"></select>
+</div>
+
+<div id="sainsburys-container" class="container" style="display:none;">
+    <h3>Pick a product from Sainsbury's</h3>
+    <select id="sainsburys-select"></select>
+</div>
+
+<div class="container">
+    <label for="queries">Enter Variants (comma separated)</label>
+    <input type="text" id="queries" placeholder="e.g., apple, red apple, granny smith">
+</div>
+
+<div class="container">
+    <button class="btn" id="save-btn" onclick="saveMapping()" disabled>Save Mapping</button>
+</div>
+
+<script>
+    async function searchProducts() {
+      const term = document.getElementById('search-term').value.trim();
+      if (!term) return alert('Please enter a search term.');
+
+      // 1) Fetch Tesco results
+      const tescoRes = await fetch(
+        `http://localhost:5000/api/admin/products/search?store=tesco&q=${encodeURIComponent(term)}`
+      );
+      if (!tescoRes.ok) {
+        return alert('Error fetching Tesco products: ' + tescoRes.statusText);
+      }
+      const tescoData = await tescoRes.json();
+
+      // Populate Tesco dropdown
+      const tescoSelect = document.getElementById('tesco-select');
+      tescoSelect.innerHTML = '';
+      tescoData.forEach((p) => {
+        const opt = document.createElement('option');
+        opt.value = JSON.stringify(p);
+        opt.textContent = p.name;
+        tescoSelect.appendChild(opt);
+      });
+      document.getElementById('tesco-container').style.display = 'block';
+
+      // 2) Fetch Sainsbury’s results
+      const sainsRes = await fetch(
+        `http://localhost:5000/api/admin/products/search?store=sainsburys&q=${encodeURIComponent(term)}`
+      );
+      if (!sainsRes.ok) {
+        return alert('Error fetching Sainsbury’s products: ' + sainsRes.statusText);
+      }
+      const sainsData = await sainsRes.json();
+
+      // Populate Sainsbury’s dropdown
+      const sainsSelect = document.getElementById('sainsburys-select');
+      sainsSelect.innerHTML = '';
+      sainsData.forEach((p) => {
+        const opt = document.createElement('option');
+        opt.value = JSON.stringify(p);
+        opt.textContent = p.name;
+        sainsSelect.appendChild(opt);
+      });
+      document.getElementById('sainsburys-container').style.display = 'block';
+
+      // Now enable the Save button
+      document.getElementById('save-btn').disabled = false;
+    }
+
+      async function saveMapping() {
+        const tescoProduct = JSON.parse(document.getElementById('tesco-select').value);
+        const sainsburysProduct = JSON.parse(document.getElementById('sainsburys-select').value);
+        const queries = document.getElementById('queries').value.split(',').map(q => q.trim().toLowerCase());
+
+        const mapping = {
+          generic_name: tescoProduct.name, // Use Tesco's product name as the generic name
+          tesco: tescoProduct,
+          sainsburys: sainsburysProduct,
+          queries: queries,
+          confidence: 1.0
+        };
+
+        // Send the data to backend for saving
+        const res = await fetch('http://localhost:5000/api/admin/manual-mappings', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(mapping),
+        });
+
+        if (!res.ok) {
+          const err = await res.text();
+          return alert('Failed to save mapping: ' + err);
+        }
+
+        alert('Mapping saved successfully!');
+        // reset UI
+        document.getElementById('search-term').value      = '';
+        document.getElementById('queries').value          = '';
+        document.getElementById('tesco-container').style.display = 'none';
+        document.getElementById('sainsburys-container').style.display = 'none';
+        document.getElementById('save-btn').disabled      = true;
+      }
+</script>
+</body>
+</html>
