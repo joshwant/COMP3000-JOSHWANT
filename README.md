@@ -18,7 +18,7 @@ That simplifies meal planning, generates AI-powered price comparisons based on s
 -	Streamlined UI/UX: Focus on the user interface to provide a smooth experience for the user.
 
 
-## Decided on tech stack for the project: 
+## Technology Stack: 
 - Mobile App: React Native with Expo Go
 - Backend: Node.js with Express
 - Database: MongoDB
