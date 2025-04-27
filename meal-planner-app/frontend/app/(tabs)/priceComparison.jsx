@@ -243,6 +243,30 @@ const PriceComparison = () => {
     setDropdownVisible(false);
   };
 
+  // Helper to parse price strings ("£0.85" or "85p") into a number in £
+  const parsePrice = (priceStr) => {
+    if (!priceStr) return 0;
+    if (priceStr.includes('£'))      return parseFloat(priceStr.replace('£','')) || 0;
+    if (priceStr.includes('p'))      return (parseFloat(priceStr.replace('p','')) || 0) / 100;
+    return parseFloat(priceStr) || 0;
+  };
+
+  // Calculate total for a given store over the entire shoppingList
+  const calcTotalFor = (storeName) => shoppingList.reduce((sum, shopItem) => {
+    const cand = shopItem.matchResult?.selected_candidate;
+    if (!cand) return sum;
+    const priceKey = storeName === 'Tesco' ? 'tesco_price' : 'sainsburys_price';
+    const priceStr = cand[priceKey];
+    const qty = parseInt(shopItem.quantity, 10) || 1;
+    return sum + (parsePrice(priceStr) * qty);
+  }, 0);
+
+  const totalTesco = calcTotalFor('Tesco');
+  const totalSains = calcTotalFor("Sainsbury's");
+  const savings    = Math.abs(totalTesco - totalSains);
+  const cheaperStore = totalTesco < totalSains ? 'Tesco' : "Sainsbury's";
+
+
   return (
     <View style={styles.container}>
       <View>
@@ -292,6 +316,15 @@ const PriceComparison = () => {
           </TouchableOpacity>
         </Modal>
       </View>
+
+      {/* Cheapest Store Savings Banner */}
+      {savings > 0 && (
+        <View style={styles.cheapestBanner}>
+          <Text style={styles.cheapestText}>
+            You can save £{savings.toFixed(2)} if you shopped at {cheaperStore}!
+          </Text>
+        </View>
+      )}
 
       {isLoading ? (
         <ActivityIndicator size="large" color="#00B21E" />
@@ -451,6 +484,18 @@ const styles = StyleSheet.create({
   totalAmount: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  cheapestBanner: {
+    backgroundColor: '#00B21E',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  cheapestText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
   unmatchedNote: {
     fontSize: 12,
