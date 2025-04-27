@@ -1,3 +1,4 @@
+![Logo](https://github.com/joshwant/COMP3000-JOSHWANT/blob/main/meal-planner-app/frontend/app/assets/mainlogo.png?raw=true)
 # PrepIt - Meal Planning and AI-Powered Price Comparison Mobile App
 ## Allocated Supervisor
 Bogdan Ghita
@@ -9,7 +10,7 @@ The AI-Powered Meal Planning and Smart Shopping App <br>
 Is a mobile application <br>
 That simplifies meal planning, generates AI-powered price comparisons based on shopping list, and plan cost-effective shopping across different supermarkets. <br>
 
-## Features:
+## Features
 -	Recipe Finder: Integrated with TheMealDB's API to allow users to discover new meals based on their preferences.
 -	Weekly Meal Planning Calendar: A user-friendly interface to schedule meals throughout the week.
 -	Shopping List: Create a personalised shopping list.
@@ -18,7 +19,7 @@ That simplifies meal planning, generates AI-powered price comparisons based on s
 -	Streamlined UI/UX: Focus on the user interface to provide a smooth experience for the user.
 
 
-## Technology Stack: 
+## Technology Stack:
 - Mobile App: React Native with Expo Go
 - Backend: Node.js with Express
 - Database: MongoDB
