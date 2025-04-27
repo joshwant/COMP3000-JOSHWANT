@@ -60,6 +60,11 @@ const Signup = () => {
           </Text>
         </Text>
       </View>
+      <View style={styles.footerContainer}>
+        <Text style={styles.footerText}>
+          By signing up for PrepIt, you agree that your data will be stored securely within the app. Currently, there is no option to delete your account, but all data will be erased at the end of the project. Rest assured, your information will not be shared with third parties.
+        </Text>
+      </View>
     </View>
   );
 };
@@ -128,5 +133,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#00B21E',
     fontWeight: 'bold',
+  },
+  footerContainer: {
+    marginTop: 40,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
+    paddingBottom: 20,
+  },
+  footerText: {
+    color: '#7f8c8d',
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });
