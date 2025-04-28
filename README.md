@@ -1,4 +1,3 @@
-![Logo](https://github.com/joshwant/COMP3000-JOSHWANT/blob/main/meal-planner-app/frontend/app/assets/mainlogo.png?raw=true)
 # PrepIt - Meal Planning and AI-Powered Price Comparison Mobile App
 ## Allocated Supervisor
 Bogdan Ghita
@@ -42,3 +41,10 @@ That simplifies meal planning, generates AI-powered price comparisons based on s
 - Run `npm install` to install dependencies
 - Run `npx expo start` to start the app
 - Scan the QR code with Expo Go on your mobile device to view the app
+
+## Screenshots
+![Login Screen](screenshots/login.png)
+![Home Screen](screenshots/homepage.png)
+![Meal Planning Screen](screenshots/calendar.png)
+![Shopping List Screen](screenshots/shopping_list.png)
+![Price Comparison Screen](screenshots/price_comparison.png)

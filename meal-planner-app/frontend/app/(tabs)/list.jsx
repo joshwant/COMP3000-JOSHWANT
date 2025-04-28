@@ -108,13 +108,13 @@ const List = () => {
               <Text style={styles.itemText}>
                 {item.quantity} x {item.name} {item.size ? `(${item.size})` : ''}
               </Text>
-              {item.matchResult?.selected_candidate ? (
-                <Text style={styles.matchText}>
-                  Match: {item.matchResult.selected_candidate.generic_name}
-                </Text>
-              ) : (
-                <Text style={styles.noMatchText}>No match found</Text>
-              )}
+{/*               {item.matchResult?.selected_candidate ? ( */}
+{/*                 <Text style={styles.matchText}> */}
+{/*                   Match: {item.matchResult.selected_candidate.generic_name} */}
+{/*                 </Text> */}
+{/*               ) : ( */}
+{/*                 <Text style={styles.noMatchText}>No match found</Text> */}
+{/*               )} */}
             </View>
             <TouchableOpacity onPress={() => handleDeleteItem(item.id)}>
               <Text style={styles.deleteText}>🗑️</Text>
